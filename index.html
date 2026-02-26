@@ -2,36 +2,53 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RAPM_V24_ANONYMOUS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RAPM_V24_PUBLIC</title>
     <style>
         :root { --n: #00ffcc; --r: #ff0044; --g: #ffcc00; --b: #000; }
-        body { background: var(--b); color: var(--n); font-family: "PingFang SC", "Microsoft YaHei", sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        #s { width: 480px; border-right: 2px solid var(--n); padding: 30px; display: flex; flex-direction: column; background: #050505; z-index: 5; }
-        #log { flex: 1; overflow-y: auto; scrollbar-width: none; padding-bottom: 50px; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--b); color: var(--n); font-family: sans-serif; margin: 0; display: flex; flex-direction: row; height: 100vh; overflow: hidden; }
+        
+        /* 侧边栏：手机端改为顶部或底部自适应 */
+        #s { width: 450px; border-right: 2px solid var(--n); padding: 25px; display: flex; flex-direction: column; background: #050505; z-index: 10; transition: all 0.3s; }
+        #log { flex: 1; overflow-y: auto; scrollbar-width: none; padding-bottom: 20px; }
         #log::-webkit-scrollbar { display: none; }
-        #cmd { background: #000; border: 2px solid var(--n); color: #fff; width: 100%; padding: 18px; font-size: 16px; outline: none; box-shadow: 0 0 15px rgba(0,255,204,0.2); }
-        .card { border: 1px solid #333; background: #0a0a0a; padding: 20px; margin-bottom: 25px; border-left: 6px solid var(--n); animation: blink 0.3s; }
-        @keyframes blink { from { border-left-color: #fff; } to { border-left-color: var(--n); } }
+        #cmd { background: #000; border: 1px solid var(--n); color: #fff; width: 100%; padding: 15px; font-size: 16px; outline: none; border-radius: 0; }
+        
+        .card { border: 1px solid #333; background: rgba(10,10,10,0.9); padding: 15px; margin-bottom: 20px; border-left: 5px solid var(--n); animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
         .card.risk { border-left-color: var(--r); }
-        .q-text { color: var(--g); font-size: 13px; margin-bottom: 12px; font-weight: bold; border-bottom: 1px solid #222; padding-bottom: 8px; }
-        .data-box { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
-        .data-item { font-size: 13px; color: #888; }
-        .data-item b { color: #fff; font-size: 16px; display: block; margin-top: 4px; }
-        .truth-text { font-size: 15px; line-height: 1.7; color: #ddd; border-top: 1px solid #222; padding-top: 12px; }
+        .q-text { color: var(--g); font-size: 12px; margin-bottom: 10px; font-weight: bold; border-bottom: 1px solid #222; padding-bottom: 5px; }
+        .data-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .data-item { font-size: 11px; color: #888; }
+        .data-item b { color: #fff; font-size: 14px; display: block; margin-top: 2px; }
+        .truth-text { font-size: 14px; line-height: 1.6; color: #ddd; border-top: 1px solid #222; padding-top: 10px; }
+        
+        /* 背景画布 */
+        #stage { flex: 1; position: relative; background: #000; overflow: hidden; }
+        canvas { width: 100%; height: 100%; opacity: 0.4; }
+
+        /* 📱 手机端适配逻辑 */
+        @media (max-width: 850px) {
+            body { flex-direction: column; }
+            #s { width: 100%; height: 60%; border-right: none; border-bottom: 2px solid var(--n); padding: 15px; order: 2; }
+            #stage { height: 40%; order: 1; }
+            .data-box { gap: 5px; }
+            .data-item b { font-size: 13px; }
+        }
     </style>
 </head>
 <body onclick="document.getElementById('cmd').focus()">
+    <div id="stage"><canvas id="c"></canvas></div>
     <div id="s">
-        <div style="font-weight:900; letter-spacing:4px; margin-bottom:10px; font-size:20px;">RAPM V24.2</div>
-        <div style="font-size:10px; opacity:0.5; margin-bottom:25px;">DECONSTRUCTION CORE | ACCESS: SYSTEM_ROOT</div>
-        <div id="log">
-            <div style="opacity:0.4; font-size:12px;">> 逻辑纠偏程序已就绪...<br>> 核心算法：语义权重锚定<br>> 等待指令注入...</div>
+        <div style="border-bottom: 2px solid var(--n); padding-bottom: 10px; margin-bottom: 15px;">
+            <div style="font-weight:900; letter-spacing:3px; font-size:18px;">RAPM V24.2.1</div>
+            <div style="font-size:9px; opacity:0.5; text-transform: uppercase;">Systemic Deconstruction | Public_Node</div>
         </div>
-        <input id="cmd" placeholder="输入变量、趋势或指令..." autofocus autocomplete="off">
-    </div>
-    <div style="flex:1; position:relative; background:radial-gradient(circle at center, #0a1010 0%, #000 100%);">
-        <canvas id="c"></canvas>
+        <div id="log">
+            <div style="opacity:0.4; font-size:11px;">> 逻辑纠偏程序就绪...<br>> 算法：语义权重锚定<br>> 接入终端：MOBILE_ADAPTIVE</div>
+        </div>
+        <input id="cmd" placeholder="输入变量、趋势或指令..." autofocus autocomplete="off" inputmode="text">
     </div>
 
     <script>
@@ -39,45 +56,43 @@
         const cmd = document.getElementById('cmd'), log = document.getElementById('log');
         let state = { y: 2026.0, ty: 2026.0, h: [] };
 
-        // 核心：基于字符的纯净权重算法，不依赖外部变量，确保结果恒定
         function getVal(str, offset) {
             let hash = 0;
             for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
-            return Math.abs(Math.sin(hash + offset));
+            return Math.abs(Math.sin(hash * 1.482 + offset));
         }
 
         const logicDict = [
-            { key: "金融", talk: "存量信用将在 2028 年经历大洗牌。旧有的纸币或数字资产逻辑会硬着陆，财富将进行一次非自愿性的重新锚定。" },
-            { k: "性别", talk: "社会将转向以‘心理认同’和‘功能属性’为基础的新秩序，传统的生理性别分类和家庭逻辑将面临彻底解构。" },
-            { k: "身份", talk: "你的数字信用记录将比肉体更真实。一旦在算法中被判定为失效，你在物理世界也将失去所有生存权限。" },
-            { k: "战争", talk: "冲突将演变为资源的彻底锁死。断网、断电或物流劫持的破坏力将远超传统武力，城市会在一周内瘫痪。" }
+            { k: "金融", t: "信用体系将在 2028 年经历结构性硬着陆。旧有的资产逻辑将失效，财富将面临全球重新锚定。" },
+            { k: "性别", t: "社会将转向以‘心理认同’为基础的新秩序。传统的家庭逻辑将在 2030 年前后彻底解构。" },
+            { k: "身份", t: "数字化身将比肉体具备更高权重。一旦信用失效，个体将在物理世界失去所有生存权限。" },
+            { k: "战争", t: "冲突转向‘资源锁死’。断网、断电或供应链劫持的破坏力将远超传统武器。" }
         ];
 
         function process(input) {
             const v1 = getVal(input, 1), v2 = getVal(input, 2), v3 = getVal(input, 3);
-            const year = (2027.5 + v1 * 12.5).toFixed(1);
-            const prob = (48 + v2 * 45).toFixed(1) + "%";
-            const impact = (35 + v3 * 60).toFixed(1) + "%";
-            
-            let matched = logicDict.find(item => input.includes(item.key) || (item.k && input.includes(item.k)));
-            let talk = matched ? matched.talk : `该变量会在 ${year} 年的秩序曲线上造成约为 ${(v1*90).toFixed(1)}% 的剧烈波动，引发结构性位移。`;
-            let isRisk = v2 > 0.5;
+            const year = (2027.2 + v1 * 13.8).toFixed(1);
+            const prob = (45 + v2 * 50).toFixed(1) + "%";
+            const impact = (32 + v3 * 65).toFixed(1) + "%";
+            let f = logicDict.find(item => input.includes(item.k));
+            let t = f ? f.t : `该变量将在 ${year} 年对系统造成约为 ${(v1*85).toFixed(1)}% 的波动位移。`;
+            let r = v2 > 0.55;
 
-            return `<div class="card ${isRisk?'risk':''}">
-                <div class="q-text">解析指令：${input}</div>
+            return `<div class="card ${r?'risk':''}">
+                <div class="q-text">解析：${input}</div>
                 <div class="data-box">
-                    <div class="data-item">爆发节点<b>${year} 年</b></div>
-                    <div class="data-item">演化概率<b>${prob}</b></div>
-                    <div class="data-item">影响深度<b>${impact}</b></div>
-                    <div class="data-item">风险等级<b>${isRisk?'SEVERE':'MODERATE'}</b></div>
+                    <div class="data-item">节点<b>${year} 年</b></div>
+                    <div class="data-item">概率<b>${prob}</b></div>
+                    <div class="data-item">影响<b>${impact}</b></div>
+                    <div class="data-item">风险<b>${r?'SEVERE':'NORMAL'}</b></div>
                 </div>
-                <div class="truth-text"><b>结论直言：</b><br>${talk}</div>
+                <div class="truth-text"><b>推演结论：</b><br>${t}</div>
             </div>`;
         }
 
         function loop() {
-            if (state.y < state.ty) { state.y += 0.08; state.h.push({y:state.y, s:90-(state.y-2026)*3.2}); }
-            canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
+            if (state.y < state.ty) { state.y += 0.1; state.h.push({y:state.y, s:92-(state.y-2026)*3.4}); }
+            canvas.width = canvas.parentElement.offsetWidth; canvas.height = canvas.parentElement.offsetHeight;
             ctx.clearRect(0,0,canvas.width,canvas.height);
             ctx.strokeStyle = '#00ffcc'; ctx.lineWidth = 2; ctx.beginPath();
             state.h.forEach((h, i) => {
@@ -85,23 +100,20 @@
                 let y = canvas.height - (h.s/100 * canvas.height);
                 if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
             });
-            ctx.stroke();
-            requestAnimationFrame(loop);
+            ctx.stroke(); requestAnimationFrame(loop);
         }
 
         cmd.onkeydown = (e) => {
             if(e.key === 'Enter' && cmd.value.trim()) {
                 const val = cmd.value;
                 if(val.includes("股票")) {
-                    log.innerHTML = `<div class="card" style="border-left-color:var(--g)">
-                        <div class="q-text">解析：${val}</div>
-                        <b style="color:var(--g)">拒绝解析：</b>短期随机噪声不具备结构性推演价值。
-                    </div>` + log.innerHTML;
+                    log.innerHTML = `<div class="card" style="border-left-color:var(--g)"><div class="q-text">解析：${val}</div><b style="color:var(--g)">拒绝：</b>随机噪声无结构价值。</div>` + log.innerHTML;
                 } else {
                     log.innerHTML = process(val) + log.innerHTML;
-                    state.ty = 2026 + getVal(val, 1) * 15;
+                    state.ty = 2026 + getVal(val, 1) * 16;
                 }
                 cmd.value = '';
+                if(window.innerWidth < 850) cmd.blur(); // 手机端自动收起键盘
             }
         }; loop();
     </script>
