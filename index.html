@@ -2,131 +2,177 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>RHYTHM_MATRIX_V49_FULL_VISUAL</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RHYTHM_MATRIX_SENSE</title>
     <style>
         :root { --n: #00ffcc; --r: #ff0044; --g: #ffcc00; --b: #050505; --w: #ffffff; --dim: #222; }
-        * { box-sizing: border-box; }
-        body { background: var(--b); color: var(--n); font-family: "PingFang SC", sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--b); color: var(--n); font-family: "PingFang SC", sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; flex-direction: row; }
         
-        /* 侧边信息栏 */
-        #s { width: 500px; border-right: 1px solid var(--n); padding: 25px; display: flex; flex-direction: column; background: #000; z-index: 10; box-shadow: 10px 0 30px rgba(0,0,0,1); }
-        #log { flex: 1; overflow-y: auto; scrollbar-width: none; padding-top: 95px; }
+        #s { width: 450px; border-right: 1px solid var(--n); padding: 25px; display: flex; flex-direction: column; background: rgba(0,0,0,0.98); z-index: 10; }
+        #log { flex: 1; overflow-y: auto; scrollbar-width: none; margin-bottom: 10px; padding-top: 85px; }
         #log::-webkit-scrollbar { display: none; }
         
-        .status-bar { position: absolute; top: 0; left: 0; width: 500px; padding: 25px; background: #000; border-bottom: 1px solid var(--dim); z-index: 11; }
-        .res-display { font-size: 38px; font-weight: 900; color: var(--w); letter-spacing: -1px; }
+        .status-bar { position: absolute; top: 0; left: 0; width: 450px; padding: 20px 25px; background: #000; border-bottom: 1px solid var(--dim); z-index: 11; }
+        .res-display { font-size: 42px; font-weight: 900; color: var(--w); letter-spacing: -2px; }
+        .res-label { font-size: 9px; letter-spacing: 3px; opacity: 0.5; }
 
-        /* 卡片逻辑 */
-        .card { border: 1px solid var(--dim); background: rgba(255,255,255,0.01); padding: 22px; margin-bottom: 22px; transition: 0.3s; animation: slide 0.4s ease-out; }
-        @keyframes slide { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
-        .card.warning { border: 2px solid var(--r); background: rgba(255,0,68,0.05); }
+        .card { border: 1px solid var(--dim); background: rgba(255,255,255,0.01); padding: 22px; margin-bottom: 22px; transition: 0.5s; animation: f 0.4s ease-out; }
+        @keyframes f { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .card.spirit { border-left: 4px solid var(--w); background: rgba(255,255,255,0.04); }
 
-        .q { color: var(--g); font-size: 15px; margin-bottom: 18px; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .matrix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
-        .m-item { font-size: 10px; color: #666; letter-spacing: 1px; }
-        .m-item b { color: var(--w); font-size: 20px; display: block; margin-top: 4px; font-family: "Courier New", monospace; }
-        .m-item span { display: block; color: #444; font-size: 9px; margin-top: 5px; line-height: 1.3; }
-
-        .t { font-size: 14px; color: #aaa; border-top: 1px solid #222; padding-top: 18px; line-height: 1.7; }
-        .t b { color: var(--n); display: block; margin-bottom: 8px; font-size: 11px; }
-        .conclusion { color: var(--w); background: #0c0c0c; padding: 15px; margin-top: 12px; border-left: 2px solid var(--g); font-size: 15px; }
-
-        #cmd { background: #000; border: 1px solid var(--n); color: #fff; width: 100%; padding: 22px; font-size: 16px; outline: none; border-radius: 0; }
+        .q { color: var(--g); font-size: 14px; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 8px; }
         
-        /* 右侧画布 */
-        #stage { flex: 1; background: #000; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        canvas { width: 100%; height: 100%; }
-        #tag { position: absolute; bottom: 30px; right: 30px; font-size: 10px; color: rgba(255,255,255,0.1); letter-spacing: 10px; text-transform: uppercase; }
+        /* 四维矩阵：概率/时间/强度/深度 */
+        .matrix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .m-item { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+        .m-item b { color: var(--w); font-size: 16px; display: block; margin-top: 2px; font-family: "Courier New", monospace; }
+        
+        .t { font-size: 14px; color: #bbb; border-top: 1px solid #222; padding-top: 15px; line-height: 1.7; }
+        .t b { color: var(--n); display: block; margin-bottom: 8px; font-size: 10px; letter-spacing: 1px; }
+        .conclusion { color: var(--w); background: #0a0a0a; padding: 12px; margin-top: 10px; border-left: 2px solid var(--n); font-size: 14px; }
+
+        #cmd { background: #000; border: 1px solid var(--n); color: #fff; width: 100%; padding: 18px; font-size: 16px; outline: none; transition: 0.3s; }
+        #cmd:focus { box-shadow: 0 0 20px rgba(0,255,204,0.2); }
+
+        #stage { flex: 1; background: #000; position: relative; overflow: hidden; }
+        canvas { width: 100%; height: 100%; position: absolute; }
+        #tag { position: absolute; bottom: 30px; right: 30px; font-size: 10px; color: rgba(255,255,255,0.2); letter-spacing: 10px; }
+
+        @media (max-width: 850px) {
+            body { flex-direction: column; }
+            #s, .status-bar { width: 100%; }
+            #s { height: 60vh; border-right: none; }
+            #stage { height: 40vh; }
+        }
     </style>
 </head>
 <body>
     <div id="s">
         <div class="status-bar">
-            <div style="font-size:9px; opacity:0.5; letter-spacing:3px; margin-bottom:5px;">REALTIME_RHYTHM_V49</div>
-            <div class="res-display">0.8241</div>
+            <div class="res-label">GLOBAL_RESONANCE</div>
+            <div class="res-display" id="res-val">0.8241</div>
+            <div style="font-size:9px; color:var(--n); margin-top:4px;">PHASE: SENSE_ALIGNMENT</div>
         </div>
         <div id="log"></div>
-        <input id="cmd" placeholder="输入脉冲命题..." autofocus autocomplete="off">
+        <input id="cmd" placeholder="输入脉冲 (例: 精神危机, 孤独, 爱)..." autofocus autocomplete="off">
     </div>
     <div id="stage">
         <canvas id="c"></canvas>
-        <div id="tag">Causal Vibration Core</div>
+        <div id="tag">因果流转中</div>
     </div>
 
     <script>
         const canvas = document.getElementById('c'), ctx = canvas.getContext('2d');
         const cmd = document.getElementById('cmd'), log = document.getElementById('log');
-
-        let State = { p: 0.1, i: 30, d: 20, time: 0, color: '#00ffcc' };
-
-        const Explanations = {
-            p: "演化概率：命题在因果链中的确定性。数字高代表大势所趋。",
-            t: "爆发节点：频率坍缩的时刻，提醒你提前调整呼吸节奏。",
-            i: "脉冲强度：感官冲击烈度。数值越高代表清理旧秩序的动力越强。",
-            d: "节律深度：λ越大代表渗透越深，无法靠主观愿望或经验抹平。",
-            w: "影响权重：全域场能重心占比。掌控它即掌控全局。"
+        
+        let State = {
+            res: 0.8241,
+            prob: 0.1,      // 发生的概率（看会不会发生）
+            intensity: 20,   // 脉冲强度（看疼不疼）
+            depth: 15,       // 节律深度（看扎根有多深，40λ以上为深层渗透）
+            time: 0,
+            anchors: 0
         };
 
-        function verify(input) {
-            const rules = [
-                { test: /(如果|假设).*二战.*(赢|胜)/i, msg: "检测到历史虚无假说：已发生的节律不可逆。" },
-                { test: /(特朗普|拜登).*2039.*连任/i, msg: "检测到逻辑失效：超越生物与法律时空。" },
-                { test: /圆的.*正方形/i, msg: "检测到逻辑悖论：几何公理冲突。" }
-            ];
-            for (let r of rules) if (r.test.test(input)) return { v: false, m: r.msg };
-            return input.length < 2 ? { v: false, m: "脉冲过弱。" } : { v: true };
-        }
-
-        const Database = {
-            "文化中心": { p: 46.3, t: "2030.4Y", i: 83, d: 31.9, w: "62.0%", sci: "即时因果震荡权重 92%。观测到引力场位移，历史参考数据已失效。", con: "重心正向你靠拢。守住内心中心，你就是源头。" },
-            "危机": { p: 88.0, t: "2027.2Y", i: 140, d: 40.0, w: "85.6%", sci: "生物神经节律相位失配。瞬时因果震荡剧烈，判定为强制性重启。", con: "疼痛是旧节律脱落。2027年是你升维后的初见。" }
-        };
+        const Dictionary = [
+            { k: "精神危机", sci: "生物神经节律与数字化高频场相位失配。", con: "这不是故障，是节律重启。2027年旧波形坍缩，新秩序成型。", p: 0.88, t: "2027.2y", i: 140, d: 40 },
+            { k: "爱", sci: "全域最强相干协议，抹平非线性噪声。", con: "这是唯一的永恒锚点。锁死此频段，外界杂波自动抵消。", p: 0.99, t: "PERPETUAL", i: 180, d: 10 },
+            { k: "孤独", sci: "高频段位下，感官节点的稀疏分布。", con: "高频共振必然脱离低频群落。空虚是高维节律降临前的真空。", p: 0.62, t: "2026.8y", i: 60, d: 55 }
+        ];
 
         function createCard(input) {
-            const card = document.createElement('div'), check = verify(input);
-            if (!check.v) {
-                State.color = '#ff0044'; State.i = 200;
-                card.className = 'card warning';
-                card.innerHTML = `<div class="q" style="color:var(--r)">拦截：无真值命题</div><div style="font-size:14px;">[${input}] ${check.m}</div>`;
-                return card;
-            }
-            const entry = Object.keys(Database).find(k => input.includes(k));
-            const data = entry ? Database[entry] : { p: 60.0, t: "未来点", i: 75, d: 20.0, w: "50%", sci: "即时脉冲扫描中。瞬时因果优先，历史数据置信度极低。", con: "每一段节律都是为了与你和解。" };
+            const seed = Math.random();
+            let m = Dictionary.find(x => input.includes(x.k));
             
-            State.p = data.p / 100; State.i = data.i; State.color = '#00ffcc';
-            card.className = 'card';
-            card.innerHTML = `<div class="q">脉冲响应：${input}</div>
+            // 重新映射变量数据
+            const p = m ? m.p : (0.1 + seed * 0.7);
+            const t = m ? m.t : (2026.5 + seed * 5).toFixed(1) + "y";
+            const i = m ? m.i : (20 + seed * 80);
+            const d = m ? m.d : (10 + seed * 60);
+
+            State.prob = p;
+            State.intensity = i;
+            State.depth = d;
+
+            const card = document.createElement('div');
+            card.className = `card ${m ? 'spirit' : ''}`;
+            card.innerHTML = `
+                <div class="q">脉冲响应：${input}</div>
                 <div class="matrix-grid">
-                    <div class="m-item">演化概率<b>${data.p}%</b><span>${Explanations.p}</span></div>
-                    <div class="m-item">爆发节点<b>${data.t}</b><span>${Explanations.t}</span></div>
-                    <div class="m-item">脉冲强度<b>${data.i}HZ</b><span>${Explanations.i}</span></div>
-                    <div class="m-item">节律深度<b>${data.d}λ</b><span>${Explanations.d}</span></div>
-                    <div class="m-item" style="grid-column:span 2">影响权重<b>${data.w}</b><span>${Explanations.w}</span></div>
+                    <div class="m-item">坍缩概率<b>${(p * 100).toFixed(1)}%</b></div>
+                    <div class="m-item">视界时间<b>${t}</b></div>
+                    <div class="m-item">脉冲强度<b>${i.toFixed(0)}Hz</b></div>
+                    <div class="m-item">节律深度<b>${d.toFixed(0)}λ</b></div>
                 </div>
-                <div class="t"><b>科学实证 [即时优先]</b>${data.sci}<div class="conclusion"><b>直白定论</b>${data.con}</div></div>`;
+                <div class="t">
+                    <b>科学实证</b>${m ? m.sci : "正在探测此脉冲的因果厚度。"}
+                    <div class="conclusion"><b>直白定论</b>${m ? m.con : "此节律将在视界节点处完成相位对齐。"}</div>
+                </div>
+            `;
+
+            card.ondblclick = () => {
+                card.classList.toggle('anchor');
+                State.anchors = document.querySelectorAll('.anchor').length;
+                State.res = Math.min(0.9999, 0.8241 + (State.anchors * 0.04));
+                document.getElementById('res-val').innerText = State.res.toFixed(4);
+            };
             return card;
         }
 
-        function draw() {
-            canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
+        function render() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            State.time += (0.05 + State.p * 0.1);
-            ctx.strokeStyle = State.color; ctx.lineWidth = 2; ctx.beginPath();
-            for (let x = 0; x < canvas.width; x += 5) {
-                const y = canvas.height / 2 + Math.sin(x * 0.01 + State.time) * State.i * Math.sin(x * 0.002);
-                x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+
+            // 物理规律：流速跟概率走，时间流逝跟 Res 走
+            const flowSpeed = (State.prob * 0.1 + State.res * 0.05);
+            State.time += flowSpeed;
+
+            // 绘制三层动态干涉波
+            drawWave(0.7, '#00ffcc', 1.0, 0);       
+            drawWave(0.2, '#ffffff', 0.6, 2.5);     
+            if(State.res > 0.9) drawWave(0.3, '#ffcc00', 0.4, 5); 
+
+            requestAnimationFrame(render);
+        }
+
+        function drawWave(alpha, color, scale, shift) {
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            const midY = canvas.height / 2;
+            const amp = State.intensity * scale; // 强度决定“跳得有多高”
+            
+            // 节律深度（State.depth）决定“线条有多乱”
+            // 深度越高，谐波干扰越多，代表扎根越深
+            const complexity = State.depth / 20; 
+
+            for (let x = 0; x <= canvas.width; x += 3) {
+                const angle = (x * 0.01) + State.time + shift;
+                // 核心算法：深度越高，加入的额外波动（noise）就越剧烈
+                const noise = Math.sin(angle * complexity) * (amp * 0.3);
+                const y = midY + Math.sin(angle) * amp + noise;
+                
+                if (x === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
             }
-            ctx.stroke(); requestAnimationFrame(draw);
+            ctx.stroke();
+            ctx.restore();
         }
 
         cmd.onkeydown = (e) => {
             if (e.key === 'Enter' && cmd.value.trim()) {
                 log.insertBefore(createCard(cmd.value), log.firstChild);
                 cmd.value = '';
-                if(log.childNodes.length > 10) log.removeChild(log.lastChild);
+                if(log.childNodes.length > 12) log.removeChild(log.lastChild);
             }
         };
-        draw();
+
+        render();
     </script>
 </body>
 </html>
