@@ -3,98 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RAPM_V24_ADAPTIVE</title>
+    <title>RADM v38 | 魏珏然的因果实验室</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@200;900&display=swap" rel="stylesheet">
     <style>
-        :root { --n: #00ffcc; --r: #ff0044; --g: #ffcc00; --b: #000; }
-        body { background: var(--b); color: var(--n); font-family: sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; flex-direction: row; }
+        :root { --bg: #FFFFFF; --ink: #000000; --dim: #888888; --trace: #C5A059; --accent: #D15B70; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; font-family: 'Noto Serif SC', serif; background: var(--bg); color: var(--ink); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+        .app-shell { display: flex; width: 100%; min-height: 100vh; }
         
-        /* 侧边栏自适应逻辑 */
-        #s { width: 450px; border-right: 2px solid var(--n); padding: 25px; display: flex; flex-direction: column; background: #050505; z-index: 10; transition: all 0.3s; }
-        #log { flex: 1; overflow-y: auto; scrollbar-width: none; margin-bottom: 10px; }
-        #log::-webkit-scrollbar { display: none; }
-        #cmd { background: #000; border: 2px solid var(--n); color: #fff; width: 100%; padding: 15px; font-size: 16px; outline: none; box-sizing: border-box; }
+        /* 响应式侧边栏 */
+        .sidebar { width: 450px; border-right: 1px solid var(--ink); padding: 40px; height: 100vh; overflow-y: auto; background: #fff; z-index: 10; transition: all 0.5s ease; }
+        .header { font-family: 'Ma Shan Zheng'; font-size: 26px; border-bottom: 2px solid var(--ink); padding-bottom: 10px; margin-bottom: 25px; letter-spacing: 4px; text-align: center; }
         
-        .card { border-left: 4px solid var(--n); background: rgba(255,255,255,0.03); padding: 15px; margin-bottom: 20px; animation: f 0.4s ease-out; }
-        @keyframes f { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .risk { border-left-color: var(--r); }
-        .q { color: var(--g); font-size: 12px; margin-bottom: 8px; font-weight: bold; border-bottom: 1px solid #222; padding-bottom: 5px; }
-        .d { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-        .d b { color: #fff; display: block; font-size: 14px; margin-top: 2px; }
-        .t { font-size: 14px; color: #ddd; border-top: 1px solid #222; padding-top: 10px; line-height: 1.6; }
+        /* 锚点样式 */
+        .slider-unit { margin-bottom: 18px; position: relative; padding: 10px; border: 1px solid transparent; transition: 0.3s; cursor: pointer; }
+        .slider-unit.is-anchor { border-color: var(--accent); background: rgba(209, 91, 112, 0.03); }
+        .lock-hint { font-size: 9px; color: var(--accent); position: absolute; right: 10px; top: 5px; opacity: 0; transition: 0.3s; }
+        .is-anchor .lock-hint { opacity: 1; }
 
-        #stage { flex: 1; position: relative; background: #000; overflow: hidden; }
-        canvas { width: 100%; height: 100%; opacity: 0.6; }
+        .input-block { margin-bottom: 25px; }
+        .textarea-box { border: 1px solid var(--ink); padding: 12px; background: #FFF; }
+        textarea { width: 100%; border: none; outline: none; resize: none; font-size: 14px; line-height: 1.6; font-family: inherit; height: 60px; }
 
-        /* 移动端适配核心代码 */
-        @media (max-width: 850px) {
-            body { flex-direction: column; }
-            #s { width: 100%; height: 50vh; border-right: none; border-bottom: 2px solid var(--n); box-sizing: border-box; padding: 15px; }
-            #stage { height: 50vh; width: 100%; }
-            .d b { font-size: 13px; }
+        .stage { background: #fafafa; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; flex: 1; position: relative; }
+        .taiji-orb { width: min(70vw, 400px); height: min(70vw, 400px); border-radius: 50%; border: 1px solid var(--ink); display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden; background: white; }
+        .ink-wave { position: absolute; bottom: 0; width: 100%; background: var(--ink); transition: height 1s cubic-bezier(0.16, 1, 0.3, 1); }
+        .prob-display { font-family: 'Ma Shan Zheng'; font-size: 80px; z-index: 10; mix-blend-mode: difference; color: white; }
+
+        @media screen and (max-width: 900px) {
+            .app-shell { flex-direction: column-reverse; }
+            .sidebar { width: 100%; height: auto; border-right: none; border-top: 1px solid var(--ink); }
+            .stage { height: 50vh; min-height: 350px; }
         }
     </style>
 </head>
-<body onclick="document.getElementById('cmd').focus()">
-    <div id="s">
-        <div style="font-weight:900; letter-spacing:3px; font-size:18px; border-bottom: 1px solid var(--n); padding-bottom: 10px; margin-bottom: 15px;">RAPM V24.3 // ADAPTIVE</div>
-        <div id="log"><div style="opacity:0.4; font-size:11px;">> 系统已适配全终端节点...<br>> 等待指令注入...</div></div>
-        <input id="cmd" placeholder="输入变量或社会趋势..." autofocus autocomplete="off">
-    </div>
-    <div id="stage"><canvas id="c"></canvas></div>
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="header">一念·因果本原 v38</div>
+        <div style="font-size: 9px; color: var(--dim); text-align: center; margin-bottom: 20px;">[ 双击任意变量以设定为稳定锚点 ]</div>
+        
+        <div class="input-block">
+            <label style="font-size:11px; font-weight:900; color:var(--accent);">愿景描述</label>
+            <div class="textarea-box"><textarea id="nlp-desc" placeholder="输入愿景，系统将捕捉爱与时间..." oninput="Engine.calc()"></textarea></div>
+        </div>
 
-    <script>
-        const canvas = document.getElementById('c'), ctx = canvas.getContext('2d');
-        const cmd = document.getElementById('cmd'), log = document.getElementById('log');
-        let state = { y: 2026.0, ty: 2026.0, h: [] };
+        <div id="slider-root"></div>
+    </aside>
 
-        function gV(s, o) { 
-            let h = 0; for (let i = 0; i < s.length; i++) h = s.charCodeAt(i) + ((h << 5) - h); 
-            return Math.abs(Math.sin(h * 1.618 + o)); 
+    <main class="stage">
+        <div class="taiji-orb" id="orb">
+            <div id="wave" class="ink-wave"></div>
+            <div id="prob" class="prob-display">0%</div>
+        </div>
+        <div id="logic-info" style="margin-top:20px; font-size:12px; color:var(--dim); text-align:center;">监测节律中...</div>
+    </main>
+</div>
+
+<script>
+const Matrix = [
+    { id: 'st', name: '逻辑骨架', fields: ['准入门槛', '资粮匹配', '因缘完整'] },
+    { id: 'ag', name: '意志执行', fields: ['愿力承载', '执行强度'] }
+];
+
+let Vals = {};
+let Anchors = {}; 
+
+const Engine = {
+    init() { this.render(); this.calc(); },
+    render() {
+        const root = document.getElementById('slider-root');
+        root.innerHTML = Matrix.map(m => `
+            <div style="margin-bottom:20px;">
+                <div style="font-weight:900; font-size:14px; margin-bottom:10px;">${m.name}</div>
+                ${m.fields.map(f => {
+                    const k = m.id + '_' + f; Vals[k] = 3.0;
+                    return `
+                        <div class="slider-unit" id="unit-${k}" ondblclick="Engine.toggleAnchor('${k}')">
+                            <span class="lock-hint">ANCHOR ACTIVE</span>
+                            <div style="display:flex; justify-content:space-between; font-size:11px;">
+                                <span>${f}</span><span id="v-${k}">3.0</span>
+                            </div>
+                            <input type="range" class="main-range" style="width:100%" min="0" max="5" step="0.1" value="3" oninput="Engine.update('${k}', this.value)">
+                        </div>`;
+                }).join('')}
+            </div>`).join('');
+    },
+    toggleAnchor(k) {
+        Anchors[k] = !Anchors[k];
+        document.getElementById(`unit-${k}`).classList.toggle('is-anchor');
+        this.calc();
+    },
+    update(k, v) { 
+        if (Anchors[k]) return; // 锚点锁定后不可滑动
+        Vals[k] = parseFloat(v); 
+        document.getElementById(`v-${k}`).innerText = Vals[k].toFixed(1); 
+        this.calc(); 
+    },
+    calc() {
+        const wish = document.getElementById('nlp-desc').value;
+        let totalWeightedScore = 0;
+        let totalWeight = 0;
+
+        Object.keys(Vals).forEach(key => {
+            // 锚点权重提升 3 倍，作为系统定子
+            let weight = Anchors[key] ? 3.0 : 1.0;
+            totalWeightedScore += Vals[key] * weight;
+            totalWeight += 5 * weight;
+        });
+
+        let p = (totalWeightedScore / totalWeight) * 100;
+
+        // 引入“爱”的非线性收敛算法
+        if (/(爱|love|共鸣)/.test(wish)) {
+            p = Math.pow(p / 100, 0.7) * 100; // 降低熵值，向高位坍缩
         }
 
-        const dict = [
-            { k: "金融", t: "信用体系将在 2028 年经历大洗牌。旧有的纸币或数字资产逻辑将失效，财富将面临非自愿性的全球重新锚定。" },
-            { k: "身份", t: "数字化身将比肉体具备更高的社会权重。一旦数字化信用被判定为失效，个体将在物理世界失去所有生存权限。" },
-            { k: "性别", t: "传统的生理性别逻辑瓦解。社会将转向以‘心理认同’和‘功能属性’为基础的新秩序，家庭结构将面临重组。" }
-        ];
-
-        function pr(i) {
-            const v1 = gV(i, 1), v2 = gV(i, 2), v3 = gV(i, 3);
-            const y = (2027.2 + v1 * 12.8).toFixed(1), p = (45 + v2 * 50).toFixed(1) + "%", m = (35 + v3 * 60).toFixed(1) + "%";
-            let f = dict.find(item => i.includes(item.k)), t = f ? f.t : `该变量将在 ${y} 年对现有系统造成 ${(v1*80).toFixed(1)}% 的扰动位移。`;
-            let r = v2 > 0.55;
-            return `<div class="card ${r?'risk':''}">
-                <div class="q">解析：${i}</div>
-                <div class="d"><div>爆发节点<b>${y}年</b></div><div>演化概率<b>${p}</b></div><div>影响深度<b>${m}</b></div><div>风险<b>${r?'SEVERE':'NORMAL'}</b></div></div>
-                <div class="t"><b>直白结论：</b><br>${t}</div>
-            </div>`;
-        }
-
-        function L() {
-            canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
-            if (state.y < state.ty) { state.y += 0.1; state.h.push({y:state.y, s:90-(state.y-2026)*3.5}); }
-            ctx.clearRect(0,0,canvas.width,canvas.height);
-            ctx.strokeStyle = '#00ffcc'; ctx.lineWidth = 2; ctx.beginPath();
-            state.h.forEach((h, i) => {
-                let x = (h.y-2026)/24 * canvas.width;
-                let y = canvas.height - (h.s/100 * canvas.height);
-                if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-            });
-            ctx.stroke(); requestAnimationFrame(L);
-        }
-
-        cmd.onkeydown = (e) => {
-            if(e.key === 'Enter' && cmd.value.trim()) {
-                const v = cmd.value;
-                if(v.includes("股票")) {
-                    log.innerHTML = `<div class="card" style="border-left-color:var(--g)"><div class="q">解析：${v}</div><b style="color:var(--g)">拒绝解析：</b>短期噪声不具备推演价值。</div>` + log.innerHTML;
-                } else {
-                    log.innerHTML = pr(v) + log.innerHTML;
-                    state.ty = 2026 + gV(v, 1) * 15;
-                }
-                cmd.value = '';
-            }
-        }; window.onresize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; }; L();
-    </script>
+        p = Math.max(0.1, Math.min(99.9, p));
+        document.getElementById('prob').innerText = Math.round(p) + "%";
+        document.getElementById('wave').style.height = Math.round(p) + "%";
+        document.getElementById('orb').style.transform = `scale(${1 + p/1000})`;
+    }
+};
+window.onload = () => Engine.init();
+</script>
 </body>
 </html>
