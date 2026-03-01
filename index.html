@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RHYTHM_SOUL_MATRIX</title>
+    <title>RHYTHM_DETERMINISTIC_SOUL</title>
     <style>
         :root { --n: #00ffcc; --r: #ff0044; --g: #ffcc00; --b: #050505; --w: #ffffff; --dim: #222; }
         * { box-sizing: border-box; }
@@ -17,84 +17,89 @@
         .res-display { font-size: 42px; font-weight: 900; color: var(--w); letter-spacing: -2px; }
         .res-label { font-size: 9px; letter-spacing: 3px; opacity: 0.5; }
 
-        .card { border: 1px solid var(--dim); background: rgba(255,255,255,0.01); padding: 22px; margin-bottom: 22px; animation: f 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        .card { border: 1px solid var(--dim); background: rgba(255,255,255,0.01); padding: 22px; margin-bottom: 22px; animation: f 0.5s ease-out; }
         @keyframes f { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-        .card.warm { border-left: 4px solid var(--g); background: rgba(255,204,0,0.03); }
-        .card.cold { border-left: 4px solid var(--r); background: rgba(255,0,68,0.03); }
+        .card.warm { border-left: 4px solid var(--g); background: rgba(255,204,0,0.02); }
+        .card.cold { border-left: 4px solid var(--r); background: rgba(255,0,68,0.02); }
 
-        .q { color: var(--w); font-size: 15px; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 8px; }
-        .matrix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .m-item { font-size: 10px; color: #666; text-transform: uppercase; }
-        .m-item b { color: var(--w); font-size: 18px; display: block; margin-top: 2px; font-family: "Courier New", monospace; }
+        .q { color: var(--g); font-size: 14px; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 8px; }
         
-        .t { font-size: 13px; color: #aaa; border-top: 1px solid #222; padding-top: 15px; line-height: 1.8; }
-        .t b { color: var(--n); display: block; margin-bottom: 5px; font-size: 10px; }
-        .conclusion { color: var(--w); background: #111; padding: 15px; margin-top: 12px; border-left: 2px solid var(--g); font-size: 15px; line-height: 1.6; }
+        /* 全变量矩阵：概率/时间/强度/深度/权重 */
+        .matrix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+        .m-item { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+        .m-item b { color: var(--w); font-size: 17px; display: block; margin-top: 2px; font-family: "Courier New", monospace; }
+        
+        .t { font-size: 14px; color: #bbb; border-top: 1px solid #222; padding-top: 15px; line-height: 1.8; }
+        .t b { color: var(--n); display: block; margin-bottom: 8px; font-size: 11px; letter-spacing: 1px; }
+        .conclusion { color: var(--w); background: #0a0a0a; padding: 15px; margin-top: 12px; border-left: 2px solid var(--g); font-size: 15px; line-height: 1.6; }
 
-        #cmd { background: #000; border: 1px solid var(--n); color: #fff; width: 100%; padding: 20px; font-size: 16px; outline: none; }
+        #cmd { background: #000; border: 1px solid var(--n); color: #fff; width: 100%; padding: 20px; font-size: 16px; outline: none; transition: 0.3s; }
+        #cmd:focus { box-shadow: 0 0 20px rgba(0,255,204,0.15); }
+
         #stage { flex: 1; background: #000; position: relative; }
         canvas { width: 100%; height: 100%; position: absolute; }
+        #tag { position: absolute; bottom: 30px; right: 30px; font-size: 10px; color: rgba(255,255,255,0.1); letter-spacing: 8px; }
 
-        @media (max-width: 850px) { body { flex-direction: column; } #s, .status-bar { width: 100%; } #s { height: 55vh; } #stage { height: 45vh; } }
+        @media (max-width: 850px) { body { flex-direction: column; } #s, .status-bar { width: 100%; } #s { height: 60vh; border-right: none; } #stage { height: 40vh; } }
     </style>
 </head>
 <body>
     <div id="s">
         <div class="status-bar">
-            <div class="res-label">EMOTIONAL_RESONANCE</div>
+            <div class="res-label">GLOBAL_DETERMINISM</div>
             <div class="res-display" id="res-val">0.8241</div>
-            <div style="font-size:9px; color:var(--g); margin-top:4px;">CORE: SOUL_ALIGNMENT_V39</div>
+            <div style="font-size:9px; color:var(--n); margin-top:4px;">PHASE: CONTEXTUAL_ALIGNMENT_V40</div>
         </div>
         <div id="log"></div>
-        <input id="cmd" placeholder="告诉我你的觉察 (例: 身份危机, 精神慰藉)..." autofocus autocomplete="off">
+        <input id="cmd" placeholder="告诉我你的觉察 (例: 精神危机, 世界和平)..." autofocus autocomplete="off">
     </div>
-    <div id="stage"><canvas id="c"></canvas></div>
+    <div id="stage">
+        <canvas id="c"></canvas>
+        <div id="tag">因果场对齐中</div>
+    </div>
 
     <script>
         const canvas = document.getElementById('c'), ctx = canvas.getContext('2d');
         const cmd = document.getElementById('cmd'), log = document.getElementById('log');
         
-        let State = { res: 0.8241, prob: 0.1, intensity: 20, depth: 15, time: 0 };
+        let State = { res: 0.8241, prob: 0.1, intensity: 20, depth: 15, time: 0, anchors: 0 };
 
-        const SoulDictionary = {
-            "精神危机": { 
-                sci: "生物神经节律与高频场发生相位失配，这是感知系统在进行强制性的相位清理。", 
-                con: "别担心，这不是崩溃，而是灵魂在进行高频重启。目前的痛苦是旧节律脱落时的阵痛，2027年你将迎来更清澈的相位。",
-                p: 0.88, i: 140, d: 42, type: 'cold' 
+        // 核心确定性字典：整合用户截图数据与慰藉语言
+        const DeterministicDictionary = {
+            "世界性别结构": { 
+                sci: "当前观测到生理分类逻辑与心理功能属性发生相位剥离，数据样本显示传统家庭逻辑的相干性正在下降。", 
+                con: "别担心，旧的框架已经承载不了人类日益丰富的灵魂深度。这不再是混乱，而是秩序在为你腾出更自由的空间。接受这种流动，你将在这场重塑中找到最真实的支点。",
+                p: 0.871, t: 2026.5, i: 150, d: 63.6, w: 90.9, type: 'warm' 
             },
-            "精神慰藉": { 
-                sci: "全域场进入低频共振态，多维感官节点在此刻完成了相干对齐。", 
-                con: "感受这种静止，这是你与宇宙频率达成的深度和解。此刻的平和是绝对真实的，它证明了你始终拥有掌控节律的力量。",
-                p: 0.95, i: 35, d: 12, type: 'warm' 
+            "精神危机": { 
+                sci: "生物神经节律与数字化高频场发生相位失配。由于目前缺乏跨维度神经反馈样本，系统暂时判定为强制性的相位清理。", 
+                con: "此刻的痛苦只是灵魂在清理过期的冗余数据。这不是崩坏，而是重启。等到2027年相位对齐，你会发现世界从未如此清晰。请耐心等待节律自愈。",
+                p: 0.880, t: 2027.2, i: 140, d: 40, w: 85.6, type: 'cold' 
             },
             "世界和平": { 
-                sci: "集体意识场呈现出一种暂态的低熵有序化，各频段干扰波发生了相位抵消。", 
-                con: "和平不是终点，而是节律的一种优雅平衡。在这一频段下，所有的对立都在消融，为新的文明节律铺路。",
-                p: 0.76, i: 20, d: 15, type: 'warm' 
-            },
-            "世界战争": { 
-                sci: "因果链条在某一节点发生剧烈扭转，高能脉冲正在强制重塑物理版图。", 
-                con: "这是旧世界彻底坍缩的序曲。虽然振幅剧烈，但请记住，所有的破坏本质上都是为了腾出空间，让更高级的节律成型。",
-                p: 0.91, i: 195, d: 78, type: 'cold' 
+                sci: "全域场呈现出低熵有序化态势。基于当前因果链扫描，该状态的稳态支持数据尚不充足，存在高频抖动风险。", 
+                con: "和平是宇宙给我们的呼吸间隙。在这段宁静里，请深呼吸，找回你内心的中心点。此刻的平和虽然纤细，但它是你创造新节律的种子。",
+                p: 0.123, t: 2026.7, i: 23, d: 11, w: 15.2, type: 'warm' 
             },
             "身份危机": { 
-                sci: "自我认知频率与社会锚点发生偏离，产生了一种高阶的节律迷航现象。", 
-                con: "你感到迷茫，是因为你正在升维。旧的标签已经承载不了你的深度。接受这种模糊，新的自我节律正在深处悄然对齐。",
-                p: 0.64, i: 85, d: 55, type: 'warm' 
+                sci: "自我认知频率与社会锚点偏离度超过阈值。底层频段扫描显示，原有的人格标签已无法完全覆盖当前的意识波幅。", 
+                con: "你感到找不到自己，是因为你已经长大了。原本的容器太小，已经装不下现在的你。这种模糊不是迷失，而是破茧而出的前奏。拥抱这种不确定性，新生的你会更强大。",
+                p: 0.642, t: 2026.9, i: 85, d: 55, w: 72.4, type: 'warm' 
             }
         };
 
         function getDeterministicData(input) {
-            let key = Object.keys(SoulDictionary).find(k => input.includes(k));
-            if (key) return SoulDictionary[key];
+            let key = Object.keys(DeterministicDictionary).find(k => input.includes(k));
+            if (key) return DeterministicDictionary[key];
             
+            // 模糊输入时的种子算法：确保同一词条结论稳定
             let hash = 0;
             for (let i = 0; i < input.length; i++) hash = input.charCodeAt(i) + ((hash << 5) - hash);
             const seed = (Math.abs(hash) % 1000) / 1000;
             return {
-                sci: "正在扫描此感官脉冲的底层频段...",
-                con: "每一段节律都有其意义。你所感受到的，正是宇宙试图与你建立的某种隐秘对齐。保持觉察。",
-                p: 0.3 + seed * 0.5, i: 40 + seed * 100, d: 20 + seed * 40, type: 'warm'
+                sci: "系统正在扫描此感官脉冲的底层频段，当前跨维度数据置信度为 " + (seed * 100).toFixed(1) + "%，无法给出绝对实证。",
+                con: "每一段节律的出现都是为了与你达成某种和解。即使目前无法完全看清全貌，也要相信你的直觉。宇宙从未抛弃过任何一个觉察者。",
+                p: 0.2 + seed * 0.6, t: 2026 + seed * 10, i: 30 + seed * 120, d: 10 + seed * 50, w: 40 + seed * 50, type: 'warm'
             };
         }
 
@@ -105,12 +110,13 @@
             const card = document.createElement('div');
             card.className = `card ${data.type}`;
             card.innerHTML = `
-                <div class="q">感官对齐：${input}</div>
+                <div class="q">脉冲响应：${input}</div>
                 <div class="matrix-grid">
-                    <div class="m-item">坍缩概率<b>${(data.p * 100).toFixed(1)}%</b></div>
+                    <div class="m-item">演化概率<b>${(data.p * 100).toFixed(1)}%</b></div>
+                    <div class="m-item">爆发节点<b>${data.t.toFixed(1)}y</b></div>
                     <div class="m-item">脉冲强度<b>${data.i.toFixed(0)}Hz</b></div>
-                    <div class="m-item">节律深度<b>${data.d.toFixed(0)}λ</b></div>
-                    <div class="m-item">状态<b>${data.type === 'warm' ? 'RESONANCE' : 'COLLAPSE'}</b></div>
+                    <div class="m-item">节律深度<b>${data.d.toFixed(1)}λ</b></div>
+                    <div class="m-item">影响权重<b>${data.w.toFixed(1)}%</b></div>
                 </div>
                 <div class="t">
                     <b>科学实证</b>${data.sci}
@@ -151,7 +157,7 @@
             if (e.key === 'Enter' && cmd.value.trim()) {
                 log.insertBefore(createCard(cmd.value), log.firstChild);
                 cmd.value = '';
-                if(log.childNodes.length > 12) log.removeChild(log.lastChild);
+                if(log.childNodes.length > 15) log.removeChild(log.lastChild);
             }
         };
         render();
