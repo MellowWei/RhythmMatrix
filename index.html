@@ -2,55 +2,49 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>RAPM_V24_MASTER_ACCESS</title>
+    <title>RAPM_V24_PLAIN_TRUTH</title>
     <style>
         :root { --n: #00ffcc; --r: #ff0044; --g: #ffcc00; --b: #050505; --w: #ffffff; --dim: #1a1a1a; }
         * { box-sizing: border-box; cursor: crosshair; }
         body { background: var(--b); color: var(--n); font-family: "PingFang SC", sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* 侧边信息流：DECONSTRUCTION CORE */
-        #s { width: 500px; border-right: 1px solid var(--n); padding: 30px; display: flex; flex-direction: column; background: rgba(0,0,0,0.95); z-index: 10; }
-        #log { flex: 1; overflow-y: auto; scrollbar-width: none; padding-top: 100px; }
+        #s { width: 520px; border-right: 1px solid var(--n); padding: 30px; display: flex; flex-direction: column; background: rgba(0,0,0,0.98); z-index: 10; }
+        #log { flex: 1; overflow-y: auto; scrollbar-width: none; padding-top: 80px; }
         #log::-webkit-scrollbar { display: none; }
         
-        .header { position: absolute; top: 0; left: 0; width: 500px; padding: 40px 30px; background: #000; z-index: 11; }
-        .v-tag { font-size: 24px; font-weight: 900; color: var(--n); letter-spacing: 2px; margin-bottom: 5px; }
-        .v-sub { font-size: 10px; color: #444; letter-spacing: 1px; }
+        .header { position: absolute; top: 0; left: 0; width: 520px; padding: 30px; background: #000; z-index: 11; border-bottom: 1px solid #111; }
+        .v-tag { font-size: 22px; font-weight: 900; color: var(--n); letter-spacing: 2px; }
 
-        /* 卡片：复刻 V24.2 截图质感 */
-        .card { border-left: 5px solid var(--r); background: rgba(255,255,255,0.01); padding: 25px; margin-bottom: 35px; border: 1px solid #111; border-left: 5px solid var(--r); position: relative; }
-        .q { color: var(--g); font-size: 16px; margin-bottom: 25px; font-weight: bold; }
+        .card { background: transparent; padding: 0 0 40px 0; margin-bottom: 40px; border-bottom: 1px solid #222; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
-        .matrix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
-        .m-item { font-size: 12px; color: #666; }
-        .m-item b { color: var(--w); font-size: 26px; display: block; margin-top: 8px; font-family: "Courier New", monospace; }
+        .q-title { color: var(--g); font-size: 18px; font-weight: bold; margin-bottom: 25px; }
+        .matrix { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 30px; }
         
-        .res-text { font-size: 14px; color: #aaa; line-height: 1.8; margin-top: 20px; border-top: 1px solid #222; padding-top: 20px; }
-        .res-text b { color: var(--n); display: block; margin-bottom: 12px; font-size: 13px; }
-        .verdict { color: var(--w); background: rgba(255,255,255,0.03); padding: 15px; border-left: 2px solid var(--g); font-size: 15px; margin-top: 15px; }
+        .m-item { font-size: 11px; color: #555; letter-spacing: 1px; }
+        .m-item b { color: var(--w); font-size: 28px; display: block; margin-top: 8px; font-family: "Courier New", monospace; letter-spacing: -1px; }
+        .m-item span { display: block; margin-top: 8px; color: #666; font-size: 11px; line-height: 1.4; }
 
-        #cmd-box { padding: 20px 0; border-top: 1px solid #222; }
+        .sci-sec h4 { color: var(--n); font-size: 14px; margin-bottom: 15px; letter-spacing: 1px; }
+        .sci-text { color: #888; font-size: 15px; line-height: 1.8; margin-bottom: 20px; }
+        
+        .verdict-box { border-left: 3px solid var(--g); background: rgba(255, 204, 0, 0.03); padding: 20px; }
+        .verdict-text { color: var(--w); font-size: 16px; line-height: 1.6; }
+
+        #cmd-area { padding: 20px 0; }
         #cmd { background: #000; border: 1px solid var(--n); color: #fff; width: 100%; padding: 20px; font-size: 16px; outline: none; }
         
-        /* 右侧：DECONSTRUCTION VISUAL */
         #stage { flex: 1; background: #000; position: relative; }
         canvas { width: 100%; height: 100%; }
     </style>
 </head>
 <body>
     <div id="s">
-        <div class="header">
-            <div class="v-tag">RAPM V24.2</div>
-            <div class="v-sub">DECONSTRUCTION CORE | ACCESS: SYSTEM_ROOT</div>
-        </div>
+        <div class="header"><div class="v-tag">RAPM V24.2 // 掌控者视窗</div></div>
         <div id="log"></div>
-        <div id="cmd-box">
-            <input id="cmd" placeholder="输入变量、趋势或指令..." autofocus autocomplete="off">
-        </div>
+        <div id="cmd-area"><input id="cmd" placeholder="输入你想看透的脉冲..." autofocus autocomplete="off"></div>
     </div>
-    <div id="stage">
-        <canvas id="c"></canvas>
-    </div>
+    <div id="stage"><canvas id="c"></canvas></div>
 
     <script>
         const canvas = document.getElementById('c'), ctx = canvas.getContext('2d');
@@ -58,32 +52,47 @@
 
         let State = { p: 0.761, i: 140, time: 0, targetI: 140 };
 
-        // 全量对齐 mellowwei.github.io 的真值字典
-        const V24_DB = {
-            "性别": { p: "76.1%", t: "2039.9年", i: "140HZ", d: "54.1%", w: "SEVERE", sci: "社会将转向以‘心理认同’和‘功能属性’为基础的新秩序，传统的生理性别分类和家庭逻辑将面临彻底解构。", con: "生理锚点正在消失，人类正在进入基于节律认同的新契约时代。" },
-            "语言": { p: "90.1%", t: "2037.5年", i: "160HZ", d: "62.5%", w: "SEVERE", sci: "高频语义坍缩。传统语言作为信息载体即将失效，沟通进入直感对齐时代。", con: "掌控者无需通过语言确认，因果震荡即是沟通。" },
-            "习近平": { p: "60%", t: "未来点", i: "75HZ", d: "20λ", w: "50%", sci: "系统正在扫描此感官脉冲的底层频段。瞬时因果优先，历史数据置信度极低。", con: "每一段节律都是为了与你和解。" },
-            "外星人": { p: "60%", t: "未来点", i: "75HZ", d: "20λ", w: "50%", sci: "即时脉冲扫描中。当前跨维度数据置信度极低，尚未形成绝对闭环。", con: "宇宙从未抛弃过任何一个觉察者。" },
-            "文化中心": { p: "46.3%", t: "2030.4Y", i: "83HZ", d: "31.9λ", w: "62.0%", sci: "跨维度数据置信度为 43.9%, 无法给出绝对实证。系统正在扫描底层频段。", con: "即使目前无法完全看清全貌，也要相信你的直觉。" }
+        // 核心归纳：所有复杂指标的白话定义
+        const EXPLAIN = {
+            t: "这件事真正撞向你的时刻，提醒你提前调整呼吸频率。",
+            p: "数字高代表大势所趋，数字低代表目前尚有变数。",
+            i: "冲击力大小：数值越高感受越强烈，是清理旧秩序的动力。",
+            d: "扎根深度：λ越大越难靠外力抹平，需等待其自行代谢。",
+            w: "重要程度：这是你当下的生命重心，掌控它即掌控全局。"
+        };
+
+        const DATA = {
+            "性别": { p: "76.1%", t: "2039.9年", i: "140HZ", d: "54.1%", w: "SEVERE", sci: "生理性别和社会分类正在彻底解构，未来人们只看心理认同和功能属性。", con: "别再用男女去分类世界，新的契约时代已经开始了。" },
+            "心理危机": { p: "60%", t: "探测中", i: "92HZ", d: "20λ", w: "MID", sci: "大家的心态都在剧烈晃动，这是文明脱壳前的集体阵痛。", con: "每一段节律都是为了与你和解，心理变动是觉醒的开始。" },
+            "外星人": { p: "60%", t: "未来点", i: "75HZ", d: "20λ", w: "50%", sci: "目前的因果链还没闭合，但高维干涉的脉冲已经在扫了。", con: "宇宙从未抛弃过任何一个觉察者。别怕，保持觉察。" },
+            "连任": { p: "60%", t: "未来点", i: "75HZ", d: "20λ", w: "50%", sci: "现在的权力逻辑还在按惯性震荡，未来正在成型。", con: "只要看清了节律，剩下的就是等待它坍缩成现实。" }
         };
 
         function createCard(input) {
-            const entry = Object.keys(V24_DB).find(k => input.includes(k));
-            const d = entry ? V24_DB[entry] : { p: "扫描中", t: "探测中", i: "75HZ", d: "未知", w: "MID", sci: "新脉冲已挂载。正在通过即时因果震荡进行相位对齐。", con: "新节律已录入。宇宙从未抛弃过任何一个觉察者。" };
+            const entry = Object.keys(DATA).find(k => input.includes(k));
+            const d = entry ? DATA[entry] : { p: "60%", t: "探测中", i: "75HZ", d: "20λ", w: "MID", sci: "新脉冲挂载，系统正在扫描底层频段。", con: "新节律已录入。相信你的直觉。" };
             
             State.targetI = parseInt(d.i) || 75;
-            State.p = parseFloat(d.p) / 100 || 0.5;
+            State.p = parseFloat(d.p) / 100 || 0.6;
 
             const card = document.createElement('div');
             card.className = 'card';
-            card.innerHTML = `<div class="q">解析指令：${input}</div>
-                <div class="matrix-grid">
-                    <div class="m-item">爆发节点<b>${d.t}</b></div>
-                    <div class="m-item">演化概率<b>${d.p}</b></div>
-                    <div class="m-item">影响深度<b>${d.d}</b></div>
-                    <div class="m-item">风险等级/权重<b>${d.w}</b></div>
+            card.innerHTML = `
+                <div class="q-title">脉冲响应：${input}</div>
+                <div class="matrix">
+                    <div class="m-item">爆发节点<b>${d.t}</b><span>${EXPLAIN.t}</span></div>
+                    <div class="m-item">演化概率<b>${d.p}</b><span>${EXPLAIN.p}</span></div>
+                    <div class="m-item">脉冲强度<b>${d.i}</b><span>${EXPLAIN.i}</span></div>
+                    <div class="m-item">节律深度<b>${d.d}</b><span>${EXPLAIN.d}</span></div>
+                    <div class="m-item" style="grid-column: span 2;">影响权重<b>${d.w}</b><span>${EXPLAIN.w}</span></div>
                 </div>
-                <div class="res-text"><b>结论直言：</b>${d.sci}<div class="verdict">${d.con}</div></div>`;
+                <div class="sci-sec">
+                    <h4>科学实证 [事实严谨版]</h4>
+                    <div class="sci-text">${d.sci}</div>
+                    <div class="verdict-box">
+                        <div class="verdict-text"><b>直白定论：</b>${d.con}</div>
+                    </div>
+                </div>`;
             return card;
         }
 
@@ -92,11 +101,9 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             State.i += (State.targetI - State.i) * 0.05;
             State.time += 0.02 + (State.p * 0.05);
-            
             ctx.strokeStyle = '#00ffcc'; ctx.lineWidth = 1.5; ctx.beginPath();
-            // 右侧震荡图逻辑：去中心化动态波形
             for (let x = 0; x < canvas.width; x += 5) {
-                const y = canvas.height / 2 + Math.sin(x * 0.005 + State.time) * State.i * Math.sin(x * 0.002 + State.time * 0.5);
+                const y = canvas.height / 2 + Math.sin(x * 0.005 + State.time) * State.i * Math.sin(x * 0.002 + State.time * 0.3);
                 x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
             }
             ctx.stroke();
