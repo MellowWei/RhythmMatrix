@@ -3,48 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RHYTHM_COLLAPSE_CORE</title>
+    <title>RHYTHM_MATRIX_REBORN</title>
     <style>
         :root { --n: #00ffcc; --r: #ff0044; --g: #ffcc00; --b: #050505; --w: #ffffff; --dim: #222; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--b); color: var(--n); font-family: "PingFang SC", sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; flex-direction: row; }
+        body { background: var(--b); color: var(--n); font-family: "PingFang SC", "SF Pro Display", sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; flex-direction: row; }
         
-        /* 侧边分析区 */
         #s { width: 450px; border-right: 1px solid var(--n); padding: 25px; display: flex; flex-direction: column; background: rgba(0,0,0,0.98); z-index: 10; }
-        #log { flex: 1; overflow-y: auto; scrollbar-width: none; margin-bottom: 10px; padding-top: 80px; }
+        #log { flex: 1; overflow-y: auto; scrollbar-width: none; margin-bottom: 10px; padding-top: 85px; }
         #log::-webkit-scrollbar { display: none; }
         
         .status-bar { position: absolute; top: 0; left: 0; width: 450px; padding: 20px 25px; background: #000; border-bottom: 1px solid var(--dim); z-index: 11; }
         .res-display { font-size: 42px; font-weight: 900; color: var(--w); letter-spacing: -2px; }
         .res-label { font-size: 9px; letter-spacing: 3px; opacity: 0.5; }
 
-        /* 节律响应卡片 */
-        .card { border: 1px solid var(--dim); background: rgba(255,255,255,0.01); padding: 22px; margin-bottom: 22px; transition: 0.5s cubic-bezier(0.19, 1, 0.22, 1); animation: f 0.6s ease-out; }
-        @keyframes f { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+        .card { border: 1px solid var(--dim); background: rgba(255,255,255,0.01); padding: 22px; margin-bottom: 22px; transition: 0.5s; animation: f 0.4s ease-out; }
+        @keyframes f { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .card.spirit { border-left: 4px solid var(--w); background: rgba(255,255,255,0.04); }
         .card.anchor { border-color: var(--g); background: rgba(255,204,0,0.06); box-shadow: 0 0 30px rgba(255,204,0,0.1); }
 
-        .q { color: var(--g); font-size: 14px; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 8px; letter-spacing: 1px; }
-        .d { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; font-size: 11px; color: #666; }
-        .d b { color: var(--w); font-size: 18px; display: block; margin-top: 2px; }
+        .q { color: var(--g); font-size: 14px; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 8px; }
         
-        .t { font-size: 14px; color: #bbb; border-top: 1px solid #222; padding-top: 15px; line-height: 1.8; }
-        .t b { color: var(--n); display: block; margin-bottom: 10px; font-size: 10px; letter-spacing: 2px; opacity: 0.8; }
-        .conclusion { color: var(--w); background: #0a0a0a; padding: 15px; margin-top: 12px; border-left: 2px solid var(--n); font-size: 15px; letter-spacing: 0.5px; }
+        /* 四维矩阵样式 */
+        .matrix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .m-item { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+        .m-item b { color: var(--w); font-size: 16px; display: block; margin-top: 2px; font-family: "Courier New", monospace; }
+        
+        .t { font-size: 14px; color: #bbb; border-top: 1px solid #222; padding-top: 15px; line-height: 1.7; }
+        .t b { color: var(--n); display: block; margin-bottom: 8px; font-size: 10px; letter-spacing: 1px; }
+        .conclusion { color: var(--w); background: #0a0a0a; padding: 12px; margin-top: 10px; border-left: 2px solid var(--n); font-size: 14px; }
 
-        #cmd { background: #000; border: 1px solid var(--n); color: #fff; width: 100%; padding: 20px; font-size: 17px; outline: none; transition: 0.4s; }
-        #cmd:focus { box-shadow: 0 0 25px rgba(0,255,204,0.15); border-color: var(--w); }
+        #cmd { background: #000; border: 1px solid var(--n); color: #fff; width: 100%; padding: 18px; font-size: 16px; outline: none; transition: 0.3s; }
+        #cmd:focus { box-shadow: 0 0 20px rgba(0,255,204,0.2); }
 
-        /* 动态节律区 */
-        #stage { flex: 1; background: #000; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        #stage { flex: 1; background: #000; position: relative; overflow: hidden; }
         canvas { width: 100%; height: 100%; position: absolute; }
-        #matrix-info { z-index: 5; color: rgba(255,255,255,0.1); font-size: 10px; letter-spacing: 12px; text-transform: uppercase; pointer-events: none; }
+        #tag { position: absolute; bottom: 30px; right: 30px; font-size: 10px; color: rgba(255,255,255,0.2); letter-spacing: 10px; }
 
         @media (max-width: 850px) {
             body { flex-direction: column; }
             #s, .status-bar { width: 100%; }
-            #s { height: 65vh; border-right: none; }
-            #stage { height: 35vh; }
+            #s { height: 60vh; border-right: none; }
+            #stage { height: 40vh; }
         }
     </style>
 </head>
@@ -53,14 +53,14 @@
         <div class="status-bar">
             <div class="res-label">GLOBAL_RESONANCE</div>
             <div class="res-display" id="res-val">0.8241</div>
-            <div style="font-size:9px; color:var(--n); margin-top:4px; font-weight:bold;">PHASE: COLLAPSE_ENGINE</div>
+            <div style="font-size:9px; color:var(--n); margin-top:4px;">PHASE: MATRIX_ALIGNMENT</div>
         </div>
         <div id="log"></div>
-        <input id="cmd" placeholder="注入脉冲 (例: 精神危机, 孤独, 爱)..." autofocus autocomplete="off">
+        <input id="cmd" placeholder="注入脉冲脉冲以校准矩阵..." autofocus autocomplete="off">
     </div>
     <div id="stage">
         <canvas id="c"></canvas>
-        <div id="matrix-info">视界对齐中</div>
+        <div id="tag">RESONANCE_FIELD</div>
     </div>
 
     <script>
@@ -69,87 +69,91 @@
         
         let State = {
             res: 0.8241,
-            freq: 0.1,    
-            target: 0.1,  
-            amp: 20,      
-            targetAmp: 20,
+            prob: 0.1,    // 概率 -> 驱动流速
+            intensity: 20, // 强度 -> 驱动振幅
+            depth: 0.015,  // 深度 -> 驱动频率
             time: 0,
-            anchors: 0
+            anchors: []
         };
 
-        const RhythmDictionary = [
-            { k: "精神危机", sci: "生物神经节律与数字化高频脉冲相位失配，导致感官系统进入强制熔断态。", con: "这是旧逻辑波形的终结。在视界节点处，新秩序将直接坍缩。目前的混乱并非故障，而是高频共振前的相位对齐。" },
-            { k: "焦虑", sci: "视界超前坍缩引起的相位抖动，预测算法在虚空频段发生空转。", con: "结局早已锁定在视界尽头，过程中的振幅偏离不具备任何因果效力。闭合多余感官，感受频率的绝对静止。" },
-            { k: "爱", sci: "全域最强相干协议，可强行抹平一切非线性熵增产生的杂讯。", con: "此频段为视界内唯一的永恒锚点。锁死它，外界所有干扰波将自动发生相位抵消，因果场将呈现绝对的平滑。" },
-            { k: "孤独", sci: "高频段位下，感官节点呈现出的非均匀稀疏分布现象。", con: "高频共振必然导致与低频群落的脱节。感到的空虚，实质上是更高维度节律降临前的真空占位。" }
+        const Dictionary = [
+            { k: "精神危机", sci: "生物神经节律与数字化高频场相位失配，导致感官系统强制熔断。", con: "这不是故障，是节律的重塑。在视界节点处，旧逻辑波形会消散，新秩序将在此坍缩。", p: 0.88, t: "2027.2y", i: 140, d: 0.04 },
+            { k: "焦虑", sci: "视界超前坍缩引起的相位抖动，预测算法在虚空频段空转。", con: "由于终点已锁定，过程中的振幅偏差不具因果意义。调低采样率，感受频率的静止。", p: 0.45, t: "IMMEDIATE", i: 90, d: 0.02 },
+            { k: "爱", sci: "全域最强相干协议，可瞬间抹平一切非线性噪声。", con: "这是唯一的永恒锚点。锁死此频段，外界干扰波将发生相位抵消，无法进入视界。", p: 0.99, t: "PERPETUAL", i: 180, d: 0.01 },
+            { k: "孤独", sci: "高频段位下的感官节点稀疏分布现象。", con: "高频共振必然伴随群落落差。你感到的空虚，是更高维度节律降临前的暂态真空。", p: 0.62, t: "2026.8y", i: 60, d: 0.05 }
         ];
 
-        function processPulse(input) {
+        function createCard(input) {
             const seed = Math.random();
-            let match = RhythmDictionary.find(x => input.includes(x.k));
+            let m = Dictionary.find(x => input.includes(x.k));
             
-            State.target = match ? 0.8 : (0.1 + seed * 0.4);
-            State.targetAmp = match ? 120 : (30 + seed * 50);
+            // 数据重置与映射
+            const p = m ? m.p : (0.1 + seed * 0.7);
+            const t = m ? m.t : (2026.5 + seed * 5).toFixed(1) + "y";
+            const i = m ? m.i : (20 + seed * 80);
+            const d = m ? m.d : (0.01 + seed * 0.03);
 
-            let sContent = match ? match.sci : "正在探测此脉冲在全域场中的干涉深度。";
-            let cContent = match ? match.con : `此脉冲将在视界节点处完成最终的相位对齐。`;
+            // 更新物理场状态
+            State.prob = p;
+            State.intensity = i;
+            State.depth = d;
 
             const card = document.createElement('div');
-            card.className = `card ${match ? 'spirit' : ''}`;
+            card.className = `card ${m ? 'spirit' : ''}`;
             card.innerHTML = `
                 <div class="q">脉冲响应：${input}</div>
-                <div class="d">
-                    <div>共振频率<b>${(State.target * 100).toFixed(1)}Hz</b></div>
-                    <div>视界节点<b>NEAREST</b></div>
+                <div class="matrix-grid">
+                    <div class="m-item">坍缩概率<b>${(p * 100).toFixed(1)}%</b></div>
+                    <div class="m-item">视界时间<b>${t}</b></div>
+                    <div class="m-item">脉冲强度<b>${i.toFixed(0)}Hz</b></div>
+                    <div class="m-item">节律深度<b>${(d * 1000).toFixed(0)}λ</b></div>
                 </div>
                 <div class="t">
-                    <b>科学实证</b>${sContent}
-                    <div class="conclusion"><b>直白定论</b>${cContent}</div>
+                    <b>科学实证</b>${m ? m.sci : "正在探测此脉冲在全域场中的干涉深度。"}
+                    <div class="conclusion"><b>直白定论</b>${m ? m.con : "此节律将在视界节点处完成最终的相位对齐。"}</div>
                 </div>
             `;
 
             card.ondblclick = () => {
-                card.classList.toggle('anchor');
-                State.anchors = document.querySelectorAll('.anchor').length;
-                State.res = Math.min(0.9999, 0.8241 + (State.anchors * 0.04));
+                if(card.classList.toggle('anchor')) State.anchors.push(p);
+                else State.anchors.pop();
+                State.res = Math.min(0.9999, 0.8241 + (State.anchors.length * 0.04));
                 document.getElementById('res-val').innerText = State.res.toFixed(4);
             };
             return card;
         }
 
-        function run() {
+        function render() {
             canvas.width = canvas.offsetWidth;
             canvas.height = canvas.offsetHeight;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            State.freq += (State.target - State.freq) * 0.08;
-            State.amp += (State.targetAmp - State.amp) * 0.08;
-            
-            const flowRate = (State.res * 0.4 + State.freq * 0.6) * 0.15;
-            State.time += flowRate;
+            // 物理规律：流速受概率驱动，时间受 Res 修正
+            const flowSpeed = (State.prob * 0.1 + State.res * 0.05);
+            State.time += flowSpeed;
 
-            draw(0.8, '#00ffcc', 1.0, 0);       
-            draw(0.3, '#ffffff', 0.6, 2.0);     
-            if(State.res > 0.9) draw(0.4, '#ffcc00', 0.4, 4.0); 
+            drawWave(0.7, '#00ffcc', 1.0, 0);       // 主频
+            drawWave(0.2, '#ffffff', 0.5, 2.5);     // 谐波
+            if(State.res > 0.9) drawWave(0.3, '#ffcc00', 0.4, 5); // 锚定波
 
-            requestAnimationFrame(run);
+            requestAnimationFrame(render);
         }
 
-        function draw(alpha, color, scale, shift) {
+        function drawWave(alpha, color, scale, shift) {
             ctx.save();
             ctx.globalAlpha = alpha;
             ctx.strokeStyle = color;
-            ctx.lineWidth = 2.5;
+            ctx.lineWidth = 2;
             ctx.beginPath();
             
             const midY = canvas.height / 2;
-            const currentAmp = State.amp * scale;
+            // 振幅受“强度”驱动，波动频率受“深度”驱动
+            const amp = State.intensity * scale;
+            const freq = State.depth;
 
             for (let x = 0; x <= canvas.width; x += 4) {
-                const angle = (x * 0.012) + State.time + shift;
-                const harmonic = Math.cos(angle * 0.5) * (currentAmp * 0.3);
-                const y = midY + Math.sin(angle) * currentAmp + harmonic;
-                
+                const angle = (x * freq) + State.time + shift;
+                const y = midY + Math.sin(angle) * amp + Math.cos(angle * 0.5) * (amp * 0.2);
                 if (x === 0) ctx.moveTo(x, y);
                 else ctx.lineTo(x, y);
             }
@@ -159,13 +163,13 @@
 
         cmd.onkeydown = (e) => {
             if (e.key === 'Enter' && cmd.value.trim()) {
-                log.insertBefore(processPulse(cmd.value), log.firstChild);
+                log.insertBefore(createCard(cmd.value), log.firstChild);
                 cmd.value = '';
-                if(log.childNodes.length > 15) log.removeChild(log.lastChild);
+                if(log.childNodes.length > 12) log.removeChild(log.lastChild);
             }
         };
 
-        run();
+        render();
     </script>
 </body>
 </html>
