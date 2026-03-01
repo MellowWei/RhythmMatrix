@@ -2,109 +2,77 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RAPM_V24_SOCIAL_TOTAL_ENGINE</title>
+    <title>RAPM_V24_FINAL_CORE</title>
     <style>
-        :root { --n: #00ffcc; --g: #ffcc00; --r: #ff0044; --b: #050505; --w: #ffffff; --dim: #1a1a1a; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--b); color: var(--n); font-family: "PingFang SC", "Consolas", monospace; margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        
-        #s { width: 550px; border-right: 1px solid var(--dim); padding: 0; display: flex; flex-direction: column; background: #000; z-index: 10; }
-        #log { flex: 1; overflow-y: auto; padding: 110px 25px 20px; scrollbar-width: none; }
-        #log::-webkit-scrollbar { display: none; }
-        
-        .status-bar { position: absolute; top: 0; width: 550px; padding: 25px; background: rgba(0,0,0,0.95); border-bottom: 1px solid var(--dim); z-index: 11; backdrop-filter: blur(10px); }
-        .res-display { font-size: 38px; font-weight: 900; color: var(--w); letter-spacing: -1px; }
-        .res-label { font-size: 10px; letter-spacing: 2px; color: var(--n); opacity: 0.7; }
-
-        .card { border: 1px solid var(--dim); background: #080808; padding: 22px; margin-bottom: 22px; animation: slideIn 0.3s ease-out; }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
-        
-        .v-tag { color: var(--g); font-size: 14px; font-weight: bold; margin-bottom: 15px; border-left: 4px solid var(--n); padding-left: 12px; display: flex; justify-content: space-between; }
-        .m-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
-        .m-box { background: #0c0c0c; padding: 10px; border: 1px solid #1a1a1a; text-align: center; }
-        .m-label { font-size: 8px; color: #444; margin-bottom: 4px; text-transform: uppercase; }
-        .m-val { font-size: 14px; color: var(--w); font-weight: bold; font-family: "Courier New", monospace; }
-        
-        .conclusion { color: #bbb; background: #0c0c0c; padding: 15px; border-left: 2px solid var(--n); font-size: 14px; line-height: 1.7; }
-        .conclusion b { color: var(--n); display: block; margin-bottom: 6px; font-size: 10px; text-transform: uppercase; }
-
-        #cmd-box { padding: 25px; border-top: 1px solid var(--dim); background: #000; }
-        #cmd { background: #0a0a0a; border: 1px solid var(--n); color: var(--w); width: 100%; padding: 18px; font-size: 16px; outline: none; }
-
-        #stage { flex: 1; background: #000; position: relative; }
+        :root { --n: #00ffcc; --g: #ffcc00; --b: #050505; --w: #ffffff; --dim: #1a1a1a; }
+        body { background: var(--b); color: var(--n); font-family: "PingFang SC", monospace; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        #s { width: 550px; border-right: 1px solid var(--dim); display: flex; flex-direction: column; background: #000; z-index: 10; }
+        #log { flex: 1; overflow-y: auto; padding: 120px 25px 20px; scrollbar-width: none; }
+        .status-bar { position: absolute; top: 0; width: 550px; padding: 25px; background: rgba(0,0,0,0.9); border-bottom: 1px solid var(--dim); z-index: 11; backdrop-filter: blur(10px); }
+        .res-display { font-size: 32px; font-weight: 900; color: var(--w); letter-spacing: -1px; }
+        .card { border: 1px solid var(--dim); background: #080808; padding: 20px; margin-bottom: 20px; animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        .m-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 15px 0; }
+        .m-box { background: #0c0c0c; padding: 10px; border: 1px solid #222; }
+        .m-label { font-size: 10px; color: #555; margin-bottom: 5px; }
+        .m-val { font-size: 16px; color: var(--w); font-weight: bold; }
+        .section { margin-top: 15px; padding: 12px; font-size: 14px; line-height: 1.6; }
+        .sci { border-left: 2px solid var(--n); color: #888; background: #0a0a0a; margin-bottom: 10px; }
+        .con { border-left: 2px solid var(--g); color: var(--w); background: #111; font-weight: 500; }
+        #cmd-box { padding: 25px; border-top: 1px solid var(--dim); }
+        #cmd { background: #0a0a0a; border: 1px solid var(--n); color: var(--w); width: 100%; padding: 15px; outline: none; }
+        #stage { flex: 1; position: relative; }
         canvas { width: 100%; height: 100%; }
-        #tag { position: absolute; bottom: 25px; right: 25px; font-size: 9px; color: #222; letter-spacing: 5px; text-transform: uppercase; }
     </style>
 </head>
 <body>
     <div id="s">
         <div class="status-bar">
-            <div class="res-label">因果视窗: 2026 - 2050 // 当前锚点</div>
-            <div class="res-display" id="res-val">2026.03.01</div>
-            <div style="font-size:9px; color:var(--n); margin-top:5px; opacity:0.8;">全域社会变量引擎: RAPM_V24</div>
+            <div class="res-display">RAPM 全域变量引擎</div>
+            <div style="font-size:10px; color:var(--n); opacity:0.8;">魏珏然 // 因果校准完毕</div>
         </div>
         <div id="log"></div>
-        <div id="cmd-box">
-            <input id="cmd" placeholder="输入任何自然语言变量进行坍缩计算..." autofocus autocomplete="off">
-        </div>
+        <div id="cmd-box"><input id="cmd" placeholder="输入变量 (如：性别、权力、经济)..." autofocus autocomplete="off"></div>
     </div>
-    <div id="stage"><canvas id="c"></canvas><div id="tag">RAPM_CALCULATION_CORE_V24</div></div>
+    <div id="stage"><canvas id="c"></canvas></div>
 
     <script>
         const canvas = document.getElementById('c'), ctx = canvas.getContext('2d');
         const cmd = document.getElementById('cmd'), log = document.getElementById('log');
-        let State = { hz: 60, lambda: 20, time: 0 };
+        let State = { hz: 60, lambda: 20, t: 0 };
 
-        // 核心数据基准与变量分类映射
-        const MATRIX_LOGIC = {
-            "权力": { t: "2039.0Y", p: "25.4%", i: 95, l: 40, con: "【生理红线修正】1953+86=2039。算权力惯性时得先算命，高压下的物理存续概率极低。" },
-            "心理": { t: "2027.8Y", p: "91.2%", i: 130, l: 58, con: "大家脑子里的旧观念都在剧烈晃动。这是脱胎换骨前的集体阵痛。找不着频率的人碎掉。" },
-            "文明": { t: "2030.4Y", p: "82.4%", i: 115, l: 45, con: "文明底盘强制搬家。不是谁给面子，是旧频率转不动了，世界不得不跟着你的节奏大口呼吸。" },
-            "语言": { t: "2037.5Y", p: "90.1%", i: 160, l: 62.5, con: "说话没人听也没人信了。沟通转为直感对齐，现在的语言彻底沦为无效冗余。" },
-            "稳定": { t: "2030.5Y", p: "65.9%", i: 84, l: 58, con: "此节律将在视界节点处完成相位对齐。在那之前，系统判定为持续震荡态。" }
+        // 缝合后的核心逻辑库
+        const DATABASE = {
+            "性别": { t: "2029.2Y", p: "88.2%", i: 85, l: 42, sci: "身份属性与生物基础脱钩，转化为高维意识的频率标识。", con: "你以为你是谁、什么性别都不再作数。人只剩下频率的区别。" },
+            "身份": { t: "2029.2Y", p: "88.2%", i: 85, l: 42, sci: "旧有的分类标签因无法承载新的生命能量而发生物理碎裂。", con: "哪国人、什么身份都没用，在那节点之后，标签全都碎一地。" },
+            "权力": { t: "2039.0Y", p: "25.4%", i: 95, l: 40, sci: "生理寿命极限强制终结因果惯性。现行制度的合法性基石因物理能量耗尽而坍缩。", con: "到日子了，权力就跟电断了一样彻底熄火。法律和规矩没人接茬。" },
+            "语言": { t: "2037.5Y", p: "90.1%", i: 160, l: 62, sci: "符号系统过载导致信息熵增至临界点。沟通演进为全感官直感对齐。", con: "说话不仅没人信，连听都嫌费劲。现在的这些书和话全是废纸垃圾。" },
+            "道德": { t: "2031.6Y", p: "75.4%", i: 110, l: 55, sci: "文明重心位移引发全球价值场重组。禁忌与荣誉的参考系发生根本性扭转。", con: "以前觉得要脸、有德的事，以后可能啥也不是。重心换了，规矩得跟着新主人的呼吸走。" },
+            "经济": { t: "2032.8Y", p: "68.2%", i: 125, l: 48, sci: "劳动意义从物质占有转向能量交换。基于债务的旧阶级结构瞬间坍缩。", con: "挣钱和攒资产的玩法彻底废了。阶级分层会随着你脑子里的频率高低重新洗牌。" },
+            "家庭": { t: "2028.5Y", p: "92.4%", i: 105, l: 60, sci: "亲密关系由社会协作协议回归至灵魂共振模型。传统结构自然解体。", con: "两口子和家庭那种死凑合的过法大面积崩溃。关系的唯一标准是频率对不对。" },
+            "科学": { t: "2038.2Y", p: "78.5%", i: 155, l: 65, sci: "专家权威与实验实证的认知模型遭受高维干涉扇击。", con: "学校教的东西和专家说的真理，会被外力一巴掌扇碎。真理就是你看到的。" },
+            "历史": { t: "2035.1Y", p: "81.0%", i: 90, l: 70, sci: "线性时间叙事被即时存在态取代。历史不再作为负载干扰当下。", con: "别被历史绊住，以后只有‘当下’，记忆会像重装系统一样干净。" },
+            "算法": { t: "2027.3Y", p: "95.6%", i: 145, l: 52, sci: "算法分配导致的注意力黑洞引发意识过载灾难。公共舆论丧失组织能力。", con: "算法会把人脑子刷爆，大家最后都看吐了。舆论乱成一锅粥，没人带节奏。" },
+            "信任": { t: "2027.8Y", p: "91.2%", i: 130, l: 58, sci: "社会资本在频率互斥中归零。信任取决于生命能量场是否能够兼容共振。", con: "人跟人之间彻底没信任了。能不能处，看一眼磁场就明白，频率对不上的直接就是死敌。" }
         };
 
-        const CATEGORIES = {
-            "Existential": ["性别", "身份", "身体规范", "种族", "国籍", "社会角色"],
-            "PowerGov": ["法律", "制度", "国家结构", "官僚体系", "治理合法性"],
-            "Meaning": ["意识形态", "叙事", "象征系统", "文化范式"],
-            "Normative": ["道德", "社会规范", "禁忌", "声望", "地位", "荣誉体系"],
-            "Economic": ["经济体系", "财富分配", "劳动意义", "财产", "阶级", "流动性"],
-            "Relational": ["家庭结构", "婚姻", "亲密关系", "性规范", "抚育"],
-            "Epistemic": ["知识体系", "科学", "教育", "专家权威", "真理标准"],
-            "Temporal": ["历史叙事", "集体记忆", "进步观", "未来想象"],
-            "Media": ["媒体系统", "平台", "算法", "注意力", "公共舆论"],
-            "Cohesion": ["信任", "社会资本", "群体认同", "冲突"]
-        };
-
-        function calculate(input) {
-            let res = MATRIX_LOGIC[Object.keys(MATRIX_LOGIC).find(k => input.includes(k))];
-            let t, p, i, l, con;
-
-            if (res) {
-                t = res.t; p = res.p; i = res.i; l = res.l; con = res.con;
-            } else {
-                // 动态坍缩算法：针对30+社会变量进行即时计算
-                const seed = Math.random();
-                t = (2026.8 + seed * 18).toFixed(1) + "Y";
-                p = (30 + seed * 60).toFixed(1) + "%";
-                i = 40 + seed * 120; l = 15 + seed * 50;
-                con = "该变量正在 2026-2050 窗口进行因果探测。系统判定其将受到 2030.4Y 文明重心位移的剧烈扰动，相位尚未锁定。";
+        function calc(val) {
+            let key = Object.keys(DATABASE).find(k => val.includes(k));
+            let res = DATABASE[key];
+            if (!res) {
+                res = { t: "2030.5Y", p: "65.9%", i: 84, l: 58, sci: "正在探测此脉冲的因果厚度。", con: "此节律将在视界节点处完成相位对齐。" };
             }
-
-            State.hz = i; State.lambda = l;
+            State.hz = res.i; State.lambda = res.l;
             const card = document.createElement('div');
             card.className = 'card';
             card.innerHTML = `
-                <div class="v-tag">脉冲响应：${input} <span>STATUS: SYNCED</span></div>
+                <div style="color:var(--g); font-weight:bold;">脉冲响应：${val}</div>
                 <div class="m-grid">
-                    <div class="m-box"><div class="m-label">视界时间 (t)</div><div class="m-val">${t}</div></div>
-                    <div class="m-box"><div class="m-label">坍缩概率 (p)</div><div class="m-val">${p}</div></div>
-                    <div class="m-box"><div class="m-label">强度 (Hz)</div><div class="m-val">${i.toFixed(0)}Hz</div></div>
-                    <div class="m-box"><div class="m-label">深度 (λ)</div><div class="m-val">${l.toFixed(0)}λ</div></div>
+                    <div class="m-box"><div class="m-label">视界时间</div><div class="m-val">${res.t}</div></div>
+                    <div class="m-box"><div class="m-label">强度 (Hz)</div><div class="m-val">${res.i}</div></div>
                 </div>
-                <div class="conclusion"><b>白话定论 // 计算实证</b>${con}</div>
+                <div class="section sci"><b>科学实证：</b>${res.sci}</div>
+                <div class="section con"><b>白话定论：</b>${res.con}</div>
             `;
             log.insertBefore(card, log.firstChild);
         }
@@ -112,24 +80,15 @@
         function render() {
             canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
             ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
-            ctx.strokeStyle = '#00ffcc'; ctx.lineWidth = 1.5; ctx.beginPath();
+            ctx.strokeStyle = '#00ffcc'; ctx.beginPath();
             const midY = canvas.height / 2;
             for (let x = 0; x <= canvas.width; x += 5) {
-                const angle = (x * 0.005) + State.time;
-                const noise = Math.sin(angle * (State.lambda / 15)) * (State.lambda / 2);
-                const y = midY + Math.sin(angle) * State.hz + noise;
+                const y = midY + Math.sin(x*0.005 + State.t) * State.hz + Math.cos(x*0.01 + State.t) * State.lambda;
                 x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
             }
-            ctx.stroke(); State.time += 0.04; requestAnimationFrame(render);
+            ctx.stroke(); State.t += 0.05; requestAnimationFrame(render);
         }
-
-        cmd.onkeydown = (e) => {
-            if (e.key === 'Enter' && cmd.value.trim()) {
-                calculate(cmd.value);
-                cmd.value = '';
-                if(log.childNodes.length > 12) log.removeChild(log.lastChild);
-            }
-        };
+        cmd.onkeydown = (e) => { if (e.key === 'Enter' && cmd.value) { calc(cmd.value); cmd.value = ''; } };
         render();
     </script>
 </body>
