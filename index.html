@@ -3,98 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RAPM_V24_ADAPTIVE</title>
+    <title>RAPM_V25_WORLD_ANCHOR</title>
     <style>
-        :root { --n: #00ffcc; --r: #ff0044; --g: #ffcc00; --b: #000; }
-        body { background: var(--b); color: var(--n); font-family: sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; flex-direction: row; }
+        :root { --n: #00ffcc; --r: #ff0044; --g: #ffcc00; --b: #050505; --w: #ffffff; }
+        body { background: var(--b); color: var(--n); font-family: 'Courier New', monospace; margin: 0; display: flex; height: 100vh; overflow: hidden; flex-direction: row; }
         
-        /* 侧边栏自适应逻辑 */
-        #s { width: 450px; border-right: 2px solid var(--n); padding: 25px; display: flex; flex-direction: column; background: #050505; z-index: 10; transition: all 0.3s; }
-        #log { flex: 1; overflow-y: auto; scrollbar-width: none; margin-bottom: 10px; }
+        /* 侧边栏布局 */
+        #s { width: 450px; border-right: 1px solid var(--n); padding: 25px; display: flex; flex-direction: column; background: rgba(0,0,0,0.95); z-index: 10; transition: width 0.3s; }
+        #log { flex: 1; overflow-y: auto; scrollbar-width: none; margin-bottom: 10px; padding-right: 5px; }
         #log::-webkit-scrollbar { display: none; }
-        #cmd { background: #000; border: 2px solid var(--n); color: #fff; width: 100%; padding: 15px; font-size: 16px; outline: none; box-sizing: border-box; }
         
-        .card { border-left: 4px solid var(--n); background: rgba(255,255,255,0.03); padding: 15px; margin-bottom: 20px; animation: f 0.4s ease-out; }
-        @keyframes f { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* 指令输入 */
+        .input-wrap { position: relative; }
+        #cmd { background: transparent; border: 1px solid var(--n); color: var(--w); width: 100%; padding: 15px; font-size: 16px; outline: none; box-sizing: border-box; box-shadow: 0 0 10px rgba(0,255,204,0.1); }
+        
+        /* 推演卡片 */
+        .card { border: 1px solid var(--dim); background: rgba(255,255,255,0.02); padding: 15px; margin-bottom: 20px; transition: 0.3s; cursor: pointer; position: relative; border-left: 4px solid var(--n); }
+        .card:hover { background: rgba(0,255,204,0.05); }
+        .card.anchor { border-color: var(--g); background: rgba(255,204,0,0.05); box-shadow: 0 0 15px rgba(255,204,0,0.2); }
+        .card.anchor::after { content: "ANCHOR LOCKED"; position: absolute; top: 5px; right: 10px; font-size: 9px; color: var(--g); font-weight: bold; }
+        
         .risk { border-left-color: var(--r); }
-        .q { color: var(--g); font-size: 12px; margin-bottom: 8px; font-weight: bold; border-bottom: 1px solid #222; padding-bottom: 5px; }
-        .d { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-        .d b { color: #fff; display: block; font-size: 14px; margin-top: 2px; }
-        .t { font-size: 14px; color: #ddd; border-top: 1px solid #222; padding-top: 10px; line-height: 1.6; }
+        .q { color: var(--g); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .d { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; font-size: 12px; }
+        .d b { color: var(--w); font-size: 15px; display: block; margin-top: 2px; }
+        .t { font-size: 13px; color: #aaa; line-height: 1.6; border-top: 1px solid #222; padding-top: 8px; }
 
-        #stage { flex: 1; position: relative; background: #000; overflow: hidden; }
-        canvas { width: 100%; height: 100%; opacity: 0.6; }
+        /* 画布区 */
+        #stage { flex: 1; position: relative; background: radial-gradient(circle at center, #111 0%, #000 100%); overflow: hidden; }
+        canvas { width: 100%; height: 100%; }
+        .overlay { position: absolute; top: 20px; right: 20px; text-align: right; font-size: 10px; opacity: 0.5; pointer-events: none; }
 
-        /* 移动端适配核心代码 */
         @media (max-width: 850px) {
             body { flex-direction: column; }
-            #s { width: 100%; height: 50vh; border-right: none; border-bottom: 2px solid var(--n); box-sizing: border-box; padding: 15px; }
-            #stage { height: 50vh; width: 100%; }
-            .d b { font-size: 13px; }
+            #s { width: 100%; height: 55vh; border-right: none; border-bottom: 1px solid var(--n); }
+            #stage { height: 45vh; }
         }
     </style>
 </head>
-<body onclick="document.getElementById('cmd').focus()">
+<body>
     <div id="s">
-        <div style="font-weight:900; letter-spacing:3px; font-size:18px; border-bottom: 1px solid var(--n); padding-bottom: 10px; margin-bottom: 15px;">RAPM V24.3 // ADAPTIVE</div>
-        <div id="log"><div style="opacity:0.4; font-size:11px;">> 系统已适配全终端节点...<br>> 等待指令注入...</div></div>
-        <input id="cmd" placeholder="输入变量或社会趋势..." autofocus autocomplete="off">
+        <div style="font-weight:900; letter-spacing:5px; font-size:16px; margin-bottom: 20px; color: var(--w);">
+            RAPM V25 // <span id="res-val">0.8241</span>
+        </div>
+        <div id="log">
+            <div style="opacity:0.4; font-size:11px;">> 初始化节律世界模型...<br>> 双击卡片建立引力锚点以提高计算精度...</div>
+        </div>
+        <div class="input-wrap">
+            <input id="cmd" placeholder="注入社会变量 (如: 货币, 意识形态, 爱)..." autofocus autocomplete="off">
+        </div>
     </div>
-    <div id="stage"><canvas id="c"></canvas></div>
+    <div id="stage">
+        <div class="overlay">GLOBAL_RESONANCE_FIELD<br>STATUS: ACTIVE_COLLAPSE</div>
+        <canvas id="c"></canvas>
+    </div>
 
     <script>
         const canvas = document.getElementById('c'), ctx = canvas.getContext('2d');
         const cmd = document.getElementById('cmd'), log = document.getElementById('log');
-        let state = { y: 2026.0, ty: 2026.0, h: [] };
+        let state = { res: 0.8241, history: [], anchors: [] };
 
-        function gV(s, o) { 
-            let h = 0; for (let i = 0; i < s.length; i++) h = s.charCodeAt(i) + ((h << 5) - h); 
-            return Math.abs(Math.sin(h * 1.618 + o)); 
+        // 核心：带锚点修正的哈希算法
+        function getV(str, offset) {
+            let h = 0; 
+            // 如果存在锚点，计算结果向锚点平均值坍缩
+            if (state.anchors.length > 0) {
+                let anchorSum = state.anchors.reduce((a, b) => a + b.val, 0) / state.anchors.length;
+                str += anchorSum.toFixed(4); 
+            }
+            for (let i = 0; i < str.length; i++) h = str.charCodeAt(i) + ((h << 5) - h);
+            return Math.abs(Math.sin(h * 1.618 + offset));
         }
 
         const dict = [
-            { k: "金融", t: "信用体系将在 2028 年经历大洗牌。旧有的纸币或数字资产逻辑将失效，财富将面临非自愿性的全球重新锚定。" },
-            { k: "身份", t: "数字化身将比肉体具备更高的社会权重。一旦数字化信用被判定为失效，个体将在物理世界失去所有生存权限。" },
-            { k: "性别", t: "传统的生理性别逻辑瓦解。社会将转向以‘心理认同’和‘功能属性’为基础的新秩序，家庭结构将面临重组。" }
+            { k: "爱", t: "‘爱’不再是感性修辞，而作为一种极高频的共振带宽，将强制对冲全球金融体系带来的冷酷摩擦。它将成为系统中最稳定的节律锚点。" },
+            { k: "金融", t: "传统的信用锚点正在瓦解，2028年后，只有具备‘实际生产力’和‘认知深度’的个体能维持财富的节律性。" }
         ];
 
-        function pr(i) {
-            const v1 = gV(i, 1), v2 = gV(i, 2), v3 = gV(i, 3);
-            const y = (2027.2 + v1 * 12.8).toFixed(1), p = (45 + v2 * 50).toFixed(1) + "%", m = (35 + v3 * 60).toFixed(1) + "%";
-            let f = dict.find(item => i.includes(item.k)), t = f ? f.t : `该变量将在 ${y} 年对现有系统造成 ${(v1*80).toFixed(1)}% 的扰动位移。`;
-            let r = v2 > 0.55;
-            return `<div class="card ${r?'risk':''}">
-                <div class="q">解析：${i}</div>
-                <div class="d"><div>爆发节点<b>${y}年</b></div><div>演化概率<b>${p}</b></div><div>影响深度<b>${m}</b></div><div>风险<b>${r?'SEVERE':'NORMAL'}</b></div></div>
-                <div class="t"><b>直白结论：</b><br>${t}</div>
-            </div>`;
+        function createCard(input) {
+            const v1 = getV(input, 1), v2 = getV(input, 2), v3 = getV(input, 3);
+            const nodeY = (2027 + v1 * 10).toFixed(1);
+            const prob = (40 + v2 * 55).toFixed(1);
+            const impact = (30 + v3 * 65).toFixed(1);
+            
+            let matched = dict.find(d => input.includes(d.k));
+            let text = matched ? matched.t : `该变量将在 ${nodeY} 年引发系统级的非线性扰动。在当前锚点影响下，其演化路径已修正。`;
+            
+            const card = document.createElement('div');
+            card.className = `card ${v2 > 0.6 ? 'risk' : ''}`;
+            card.dataset.val = v2; // 存储其核心节律值
+            card.innerHTML = `
+                <div class="q">解析节点：${input}</div>
+                <div class="d">
+                    <div>爆发预计<b>${nodeY}y</b></div>
+                    <div>确定性<b>${prob}%</b></div>
+                    <div>系统占比<b>${impact}%</b></div>
+                </div>
+                <div class="t"><b>模型结论：</b><br>${text}</div>
+            `;
+            
+            // 点击设为锚点：核心逻辑升级
+            card.onclick = () => {
+                card.classList.toggle('anchor');
+                if(card.classList.contains('anchor')) {
+                    state.anchors.push({ id: input, val: v2 });
+                } else {
+                    state.anchors = state.anchors.filter(a => a.id !== input);
+                }
+                updateSystem();
+            };
+            return card;
         }
 
-        function L() {
+        function updateSystem() {
+            // 锚点越多，Resonance 越接近 0.9999 (绝对掌控)
+            let base = 0.8241;
+            state.res = Math.min(0.9999, base + (state.anchors.length * 0.04));
+            document.getElementById('res-val').innerText = state.res.toFixed(4);
+        }
+
+        function render() {
             canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
-            if (state.y < state.ty) { state.y += 0.1; state.h.push({y:state.y, s:90-(state.y-2026)*3.5}); }
-            ctx.clearRect(0,0,canvas.width,canvas.height);
-            ctx.strokeStyle = '#00ffcc'; ctx.lineWidth = 2; ctx.beginPath();
-            state.h.forEach((h, i) => {
-                let x = (h.y-2026)/24 * canvas.width;
-                let y = canvas.height - (h.s/100 * canvas.height);
-                if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-            });
-            ctx.stroke(); requestAnimationFrame(L);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制节律网格
+            ctx.strokeStyle = '#222'; ctx.lineWidth = 1;
+            for(let i=0; i<10; i++) {
+                ctx.beginPath(); ctx.moveTo(i*canvas.width/10, 0); ctx.lineTo(i*canvas.width/10, canvas.height); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, i*canvas.height/10); ctx.lineTo(canvas.width, i*canvas.height/10); ctx.stroke();
+            }
+
+            // 绘制波动曲线
+            ctx.strokeStyle = state.anchors.length > 0 ? '#ffcc00' : '#00ffcc';
+            ctx.lineWidth = 2; ctx.beginPath();
+            let segments = 50;
+            for(let i=0; i<=segments; i++) {
+                let x = (i/segments) * canvas.width;
+                // 锚点越多，波形越平滑，振幅越受控
+                let noise = Math.sin(i * 0.5 + Date.now()*0.002) * (20 / (state.anchors.length + 1));
+                let y = canvas.height/2 + noise;
+                if(i===0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            requestAnimationFrame(render);
         }
 
         cmd.onkeydown = (e) => {
             if(e.key === 'Enter' && cmd.value.trim()) {
                 const v = cmd.value;
-                if(v.includes("股票")) {
-                    log.innerHTML = `<div class="card" style="border-left-color:var(--g)"><div class="q">解析：${v}</div><b style="color:var(--g)">拒绝解析：</b>短期噪声不具备推演价值。</div>` + log.innerHTML;
-                } else {
-                    log.innerHTML = pr(v) + log.innerHTML;
-                    state.ty = 2026 + gV(v, 1) * 15;
-                }
+                log.insertBefore(createCard(v), log.firstChild);
                 cmd.value = '';
             }
-        }; window.onresize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; }; L();
+        };
+
+        window.onresize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; };
+        render();
     </script>
 </body>
 </html>
