@@ -28,10 +28,10 @@
     <div id="s">
         <div class="status-bar">
             <div class="res-display">Rhythm System</div>
-            <div style="font-size:10px; color:var(--g); opacity:0.8; letter-spacing: 2px;">V25.0 // 掌控者因果全量引擎</div>
+            <div style="font-size:10px; color:var(--g); opacity:0.8; letter-spacing: 2px;">V26.3 // 语言与因果重排引擎</div>
         </div>
         <div id="log"></div>
-        <div id="cmd-box"><input id="cmd" placeholder="输入变量，强制触发因果坍缩..." autofocus autocomplete="off"></div>
+        <div id="cmd-box"><input id="cmd" placeholder="输入变量，执行因果宣告..." autofocus autocomplete="off"></div>
     </div>
     <div id="stage"><canvas id="c"></canvas></div>
 
@@ -40,74 +40,103 @@
         const cmd = document.getElementById('cmd'), log = document.getElementById('log');
         let State = { hz: 60, lambda: 20, t: 0 };
 
-        // 统一计算语言：基于 11 张截图基点硬化
         const RULES = [
             {
-                pattern: /性别|男|女|变动|身份|我是谁/,
-                t: "2029.2Y", i: 85, l: 42, p: "快溢出来了 (88.2%)",
-                sci: "身份属性与生物基础脱钩，转化为高维意识的频率标识。",
-                con: "这辈子你以为你是谁、什么性别，在那节点之后都不再作数。人只剩下频率的区别。"
-            },
-            {
-                pattern: /美国|美方|USA|大选|华盛顿/,
-                t: "2027.8Y", i: 145, l: 58, p: "到嗓子眼了 (91.2%)",
-                sci: "信用本位与武力投影的共振频率发生相位偏移，引发结构性震颤。",
-                con: "别看现在闹得欢，2027年是个死循环。信用装不下了，武力就得往外溢，嗓子眼已经堵死了。"
-            },
-            {
-                pattern: /开战|战争|热战|冲突|打仗|导弹|蘑菇/,
+                pattern: /战争|开战|打仗|导弹|蘑菇|冲突|暴力/,
                 t: "2027.3Y", i: 180, l: 70, p: "就剩个缝 (95.6%)",
-                sci: "旧秩序的压强达到临界值，能量必须通过动能形式进行暴力释放。",
+                sci: "旧秩序压强达到物理临界值，能量必须通过动能形式暴力释放。",
                 con: "和平的缝隙窄得看不见了。2027年前后，旧能量不喷发出来系统就会自燃。"
+            },
+            {
+                pattern: /稳定|和平|平衡|现状|安全/,
+                t: "2027.8Y", i: 180, l: 70, p: "到嗓子眼了 (91.2%)",
+                sci: "稳定态正处于坍缩前夕的极低熵假象，压强积蓄已达上限。",
+                con: "所谓的‘稳定’只是火山爆发前的死寂。2027年是个死循环，喷发是唯一的出路。"
+            },
+            {
+                pattern: /语言|书|说话|沟通|表达|文字|废话/,
+                t: "2037.5Y", i: 160, l: 62, p: "马上就满 (90.1%)",
+                sci: "符号系统过载导致信息熵增至临界点，因果链发生符号化断裂。",
+                con: "废话清理期。说话不仅没人信，连听都嫌费劲。现在的书和话全是废纸垃圾。"
             },
             {
                 pattern: /中国|中方|国内|东方|大陆/,
                 t: "2031.4Y", i: 110, l: 45, p: "大半瓶了 (75.4%)",
-                sci: "文明重心的物理性位移已进入加速期，旧有的地缘重力场正在消散。",
-                con: "重心已经开始搬家了，2031年之前是最后的旧节奏。大半瓶水都在晃荡，搬完家才是新世界。"
+                sci: "文明重心的物理性位移已进入加速期，地缘重力场正在迁移。",
+                con: "重心已经在搬家了，2031年前是最后的旧节奏。大半瓶水都在晃荡，搬完家才是新世界。"
             },
             {
-                pattern: /家庭|婚姻|两口子|凑合|亲密/,
-                t: "2028.5Y", i: 105, l: 60, p: "几乎全满 (92.4%)",
-                sci: "亲密关系由社会协作协议回归至灵魂共振模型。传统结构自然解体。",
-                con: "两口子死凑合的过法会大面积崩溃。关系的唯一标准是频率对不对，别的不扯淡。"
+                pattern: /文化中心|文明中心|领导力|软实力/,
+                t: "2032.6Y", i: 125, l: 40, p: "换水阶段 (80.1%)",
+                sci: "集体潜意识的共振频率正在跨大陆迁移。",
+                con: "谁是中心由重力决定。2032年左右，新的重力场会吸走所有流量。这不是宣传，是搬家。"
             },
             {
                 pattern: /专家|权威|真理|科学|教育|学校/,
                 t: "2038.2Y", i: 155, l: 65, p: "已经溢出点 (78.5%)",
                 sci: "认知模型遭受高维干涉扇击，实证系统彻底失效。",
-                con: "专家说的所谓真理会被外力一巴掌扇碎。真理就是你看到的，不用证明。"
+                con: "专家说的所谓真理会被一巴掌扇碎。真理就是你直观看到的，不用证明。"
             },
             {
-                pattern: /权力|政治|管理|体制/,
+                pattern: /美国|美方|USA|大选|华盛顿/,
+                t: "2027.8Y", i: 145, l: 58, p: "到嗓子眼了 (91.2%)",
+                sci: "信用本位与武力投影的频率相位偏移，引发结构性震颤。",
+                con: "信用装不下了，武力往外溢，嗓子眼已经堵死了。2027年是最后的旧节奏。"
+            },
+            {
+                pattern: /权力|政治|管理|体制|政府/,
                 t: "2039.0Y", i: 95, l: 40, p: "刚装了个底 (25.4%)",
-                sci: "物理常数拦截因果惯性。现行制度的合法性基石因物理能量耗尽而坍缩。",
-                con: "权力就跟电断了一样彻底熄火。法律和规矩没人接茬，因为旧节奏转不动了。"
-            },
-            {
-                pattern: /语言|书|说话|沟通/,
-                t: "2037.5Y", i: 160, l: 62, p: "马上就满 (90.1%)",
-                sci: "符号系统过载导致信息熵增至临界点。沟通转为全感官直感对齐。",
-                con: "废话清理期。说话不仅没人信，连听都嫌费劲。现在的这些书和话全是废纸垃圾。"
+                sci: "现行制度的合法性基石因物理能量耗尽而坍缩。",
+                con: "权力像断电一样彻底熄火。规矩没人接茬，因为旧节奏转不动了。"
             }
         ];
 
         function calc(input) {
-            let res = RULES.find(r => r.pattern.test(input));
-            if (!res) {
-                res = { t: "2030.4Y", p: "变天前夜", i: 115, l: 45, sci: "文明重心位移引发的全域参数重置。", con: "旧逻辑无法解析，世界正按新频率重排。" };
+            let res = null;
+
+            // Level 0: 暴力/战争拦截
+            if (/战争|开战|打仗|导弹|蘑菇|冲突/.test(input)) {
+                res = RULES.find(r => r.pattern.toString().includes('战争'));
             }
+
+            // Level 1: 远期拦截
+            if (!res && (input.includes('2050') || input.includes('以后'))) {
+                res = {
+                    t: "2050.0Y+", p: "旧瓶已碎 (100%)", i: 40, l: 15,
+                    sci: "因果惯性彻底归零，系统进入高维共振稳态。",
+                    con: "那不是你理解的稳定。旧秩序早就碎了一地。2050年是新人的世界，旧规矩全归零了。"
+                };
+            }
+
+            // Level 2: 状态拦截 (稳定/和平)
+            if (!res && /稳定|和平|现状/.test(input)) {
+                res = RULES.find(r => r.pattern.toString().includes('稳定'));
+            }
+
+            // Level 3: 语言/沟通拦截 (防止被泛化拦截)
+            if (!res && /语言|说话|沟通|书|表达/.test(input)) {
+                res = RULES.find(r => r.pattern.toString().includes('语言'));
+            }
+
+            // Level 4: 基础实体匹配
+            if (!res) res = RULES.find(r => r.pattern.test(input));
+
+            // Level 5: 默认重心搬家逻辑
+            if (!res) {
+                res = { t: "2031.4Y", p: "大半瓶了 (75.4%)", i: 110, l: 45, sci: "全域重心位移参数重排。", con: "该命题已入轨，旧节奏废弃。重心正在搬家，等待2031。" };
+            }
+
             State.hz = res.i; State.lambda = res.l;
             const card = document.createElement('div');
             card.className = 'card';
             card.innerHTML = `
-                <div style="color:var(--g); font-weight:bold; font-size:12px;">脉冲响应：${input}</div>
+                <div style="color:var(--g); font-weight:bold; font-size:12px;">宣告指令：${input}</div>
                 <div class="m-grid">
-                    <div class="m-box"><div class="m-label">视界时间 (T)</div><div class="m-val">${res.t}</div></div>
+                    <div class="m-box"><div class="m-label">视界节点 (T)</div><div class="m-val">${res.t}</div></div>
                     <div class="m-box"><div class="m-label">旧秩序撑满程度</div><div class="m-val">${res.p}</div></div>
                 </div>
-                <div class="section sci"><b>科学实证：</b>${res.sci}</div>
-                <div class="section con"><b>白话定论：</b>${res.con}</div>
+                <div class="section sci"><b>因果厚度：</b>${res.sci}</div>
+                <div class="section con"><b>节律定论：</b>${res.con}</div>
             `;
             log.insertBefore(card, log.firstChild);
         }
@@ -118,7 +147,7 @@
             ctx.strokeStyle = '#00ffcc'; ctx.lineWidth = 2; ctx.beginPath();
             const midY = canvas.height / 2;
             for (let x = 0; x <= canvas.width; x += 5) {
-                const y = midY + Math.sin(x*0.005 + State.t) * State.hz + Math.cos(x*0.01 + State.t) * State.lambda;
+                const y = midY + Math.sin(x*0.005 + State.t) * (parseInt(State.hz) || 60) + Math.cos(x*0.01 + State.t) * (parseInt(State.lambda) || 20);
                 x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
             }
             ctx.stroke(); State.t += 0.05; requestAnimationFrame(render);
