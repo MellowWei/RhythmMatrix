@@ -2,110 +2,124 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>RAPM_V24_FINAL_TRUTH</title>
+    <title>RAPM_DYNAMIC_ENGINE_V24</title>
     <style>
         :root { --n: #00ffcc; --g: #ffcc00; --r: #ff0044; --b: #000; --w: #fff; }
-        * { box-sizing: border-box; cursor: crosshair; }
-        body { background: var(--b); color: var(--w); font-family: "PingFang SC", sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        body { background: var(--b); color: var(--w); font-family: "Fira Code", monospace; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        #sidebar { width: 580px; border-right: 1px solid var(--n); padding: 40px; display: flex; flex-direction: column; overflow-y: auto; background: rgba(0,0,0,0.95); z-index: 10; }
-        #sidebar::-webkit-scrollbar { display: none; }
+        /* 计算内核左屏 */
+        #kernel { width: 50%; border-right: 1px solid #222; display: flex; flex-direction: column; padding: 20px; }
+        #monitor { flex: 1; background: rgba(10,10,10,0.9); border: 1px solid #1a1a1a; overflow-y: auto; padding: 15px; font-size: 12px; color: #666; }
+        .log-ok { color: var(--n); }
+        .log-warn { color: var(--g); }
+        .log-crit { color: var(--r); font-weight: bold; }
         
-        .sys-header { font-size: 26px; font-weight: 900; color: var(--n); letter-spacing: 2px; margin-bottom: 40px; border-left: 6px solid var(--n); padding-left: 15px; }
+        /* 输入波形右屏 */
+        #wave-panel { flex: 1; position: relative; display: flex; flex-direction: column; }
+        canvas { flex: 1; width: 100%; filter: drop-shadow(0 0 10px var(--n)); }
         
-        .card { margin-bottom: 60px; border-bottom: 1px solid #222; padding-bottom: 40px; animation: slideIn 0.4s ease; }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
-
-        .p-title { color: var(--g); font-size: 22px; font-weight: bold; margin-bottom: 30px; }
-        
-        .matrix { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 35px; }
-        .m-item { }
-        .m-label { color: #555; font-size: 13px; margin-bottom: 10px; font-weight: bold; }
-        .m-value { color: var(--w); font-size: 36px; font-weight: 200; font-family: "Courier New", monospace; letter-spacing: -1px; }
-        .m-plain { color: #777; font-size: 12px; margin-top: 8px; line-height: 1.5; border-top: 1px solid #111; padding-top: 8px; }
-
-        .verdict-box { border-left: 4px solid var(--g); background: rgba(255, 204, 0, 0.03); padding: 25px; margin-top: 20px; }
-        .verdict-box b { color: var(--n); display: block; margin-bottom: 12px; font-size: 15px; }
-        .verdict-text { font-size: 17px; line-height: 1.7; color: var(--w); }
-
-        #stage { flex: 1; background: #000; position: relative; }
-        canvas { width: 100%; height: 100%; }
+        #input-area { height: 80px; background: #050505; border-top: 1px solid var(--n); padding: 10px; display: flex; align-items: center; }
+        #cmd { background: transparent; border: none; color: var(--w); flex: 1; font-size: 20px; outline: none; margin-left: 15px; }
+        .prompt { color: var(--n); font-weight: bold; }
     </style>
 </head>
 <body>
-    <div id="sidebar">
-        <div class="sys-header">RAPM V24.2 // 终极白话归纳</div>
-        <div id="log"></div>
+    <div id="kernel">
+        <div style="color:var(--n); margin-bottom:10px;">> RAPM_CORE_V24.2 // 魏珏然专用计算系统</div>
+        <div id="monitor"></div>
     </div>
-    <div id="stage"><canvas id="c"></canvas></div>
+    
+    <div id="wave-panel">
+        <canvas id="c"></canvas>
+        <div id="input-area">
+            <span class="prompt">WEIW_INPUT_Hz_λ:</span>
+            <input id="cmd" placeholder="输入语言感、生理寿命或文明重心变量..." autofocus>
+        </div>
+    </div>
 
     <script>
+        const monitor = document.getElementById('monitor');
         const canvas = document.getElementById('c'), ctx = canvas.getContext('2d');
-        const log = document.getElementById('log');
+        const cmd = document.getElementById('cmd');
 
-        const EXPLAIN = {
-            t: "【爆发点】这事儿真正撞到你脸上的时刻。2030s是你的密集撞击期。",
-            p: "【板上钉钉概率】数字越高说明这事儿越是躲不掉的大势，基本稳了。",
-            i: "【撞击力】Hz越高撞得越猛，是清理旧秩序、把你震醒的狠劲。",
-            d: "【扎根深度】λ越大说明这事儿越是底层逻辑，靠个人愿望改不了。"
+        // 1. 全量挂载 11 张截图基点参数
+        const CORES = {
+            POWER: { name: "习近平连任", target_y: 2039.0, p: 0.801, hz: 95, lambda: 40, bio_ref: 1953 },
+            PSYCH: { name: "心理危机", target_y: 2027.8, p: 0.912, hz: 130, lambda: 58 },
+            CIVIC: { name: "文化中心", target_y: 2030.4, p: 0.824, hz: 115, lambda: 45 },
+            LINGU: { name: "语言危机", target_y: 2037.5, p: 0.901, hz: 160, lambda: 62.5 },
+            EXTRA: { name: "高维干涉", target_y: 2038.2, p: 0.785, hz: 155, lambda: 65 }
         };
 
-        // 终极白话归纳库：校准了生理限制与截图逻辑
-        const FINAL_DB = [
-            { 
-                q: "习近平连任", t: "2039.0Y", p: "25.4%", i: "95Hz", d: "40λ", 
-                con: "【生理红线修正】算权力惯性时得先算命。86岁的高龄在那种高压下，‘活着’本身就是极低概率。2039年的连任更像是旧时代节律强撑出来的最后一口气，在那之前概率就会坍缩断掉。" 
-            },
-            { 
-                q: "世界下一场心理危机", t: "2027.8Y", p: "91.2%", i: "130Hz", d: "58λ", 
-                con: "大家脑子里的旧观念都在剧烈晃动，这是脱胎换骨前的集体阵痛。找不着自己频率的人，会在这场震荡里直接碎掉。" 
-            },
-            { 
-                q: "中国成为文化中心", t: "2030.4Y", p: "82.4%", i: "115Hz", d: "45λ", 
-                con: "文明的底盘强制搬家了。不是谁给面子，是旧频率转不动了，世界不得不跟着你的节奏大口呼吸。" 
-            },
-            { 
-                q: "人类语言危机", t: "2037.5Y", p: "90.1%", i: "160Hz", d: "62.5λ", 
-                con: "说话没人听也没人信了。沟通变成直感对齐，你动动念头对方就能感觉到，现在的语言会变得像老古董一样没用。" 
-            },
-            { 
-                q: "外星人/高维干涉", t: "2038.2Y", p: "78.5%", i: "155Hz", d: "65λ", 
-                con: "邻居已经敲门了。大家的认知要被物理性地扇一巴掌，觉醒的人早就听到 Hz 震荡了。" 
-            }
-        ];
+        let currentHz = 75, currentLambda = 20, time = 0;
 
-        function render() {
-            FINAL_DB.forEach(d => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `
-                    <div class="p-title">脉冲响应：${d.q}</div>
-                    <div class="matrix">
-                        <div class="m-item"><div class="m-label">爆发点</div><div class="m-value">${d.t}</div><div class="m-plain">${EXPLAIN.t}</div></div>
-                        <div class="m-item"><div class="m-label">板上钉钉概率</div><div class="m-value">${d.p}</div><div class="m-plain">${EXPLAIN.p}</div></div>
-                        <div class="m-item"><div class="m-label">撞击力</div><div class="m-value">${d.i}</div><div class="m-plain">${EXPLAIN.i}</div></div>
-                        <div class="m-item"><div class="m-label">扎根深度</div><div class="m-value">${d.d}</div><div class="m-plain">${EXPLAIN.d}</div></div>
-                    </div>
-                    <div class="verdict-box">
-                        <b>直白定论 [实证版]</b>
-                        <div class="verdict-text">${d.con}</div>
-                    </div>`;
-                log.appendChild(card);
-            });
+        function log(msg, type='ok') {
+            const div = document.createElement('div');
+            div.className = `log-${type}`;
+            div.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            monitor.appendChild(div);
+            monitor.scrollTop = monitor.scrollHeight;
         }
 
-        let time = 0;
+        // 核心计算函数：计算输入变量对基点的坍缩影响
+        function calculateCollapse(input) {
+            log(`正在计算输入脉冲: "${input}"`, 'warn');
+            
+            // A. 生理红线计算算法
+            const currentYear = 2026;
+            const bioAge = currentYear - CORES.POWER.bio_ref;
+            const targetAge = CORES.POWER.target_y - CORES.POWER.bio_ref; // 86岁
+            
+            log(`检测到生理常数: 目标 2039Y 年龄 = ${targetAge} 岁。`, 'ok');
+            if (targetAge >= 85) {
+                const bioDecay = Math.pow(0.5, (targetAge - 75) / 5); // 每5年概率减半
+                const realP = (CORES.POWER.p * bioDecay * 100).toFixed(2);
+                log(`生理红线警告：86岁生理极限导致权力存续概率坍缩至 ${realP}%`, 'crit');
+            }
+
+            // B. 语言感/语言危机计算
+            if (input.includes("语言")) {
+                currentHz = CORES.LINGU.hz;
+                currentLambda = CORES.LINGU.lambda;
+                log(`语言感参数加载：当前计算频率提升至 ${currentHz}Hz`, 'ok');
+                log(`白话实证：说话没人听也没人信了。2037.5Y 沟通将彻底转为直感对齐。`, 'warn');
+            }
+
+            // C. 心理危机联动计算
+            if (currentHz > 120) {
+                log(`高频震荡引发集体心理脱壳，2027.8Y 心理危机爆发概率上升至 95%+`, 'crit');
+                log(`定论：找不着自己频率的人会直接碎掉。`, 'warn');
+            }
+        }
+
+        // 绘图循环：展现物理波形的实时干扰
         function draw() {
             canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.strokeStyle = '#00ffcc'; ctx.lineWidth = 2; ctx.beginPath();
-            for (let x = 0; x < canvas.width; x += 5) {
-                const y = canvas.height / 2 + Math.sin(x * 0.005 + time) * 80 * Math.sin(x * 0.002 + time * 0.5);
-                x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            ctx.fillStyle = 'black'; ctx.fillRect(0,0,canvas.width,canvas.height);
+            
+            ctx.strokeStyle = '#00ffcc'; ctx.lineWidth = 2;
+            ctx.beginPath();
+            for(let x=0; x<canvas.width; x+=2) {
+                // 计算复合波形：基频 + 语言感干扰 + 生理衰减
+                const base = Math.sin(x * 0.01 + time) * currentHz;
+                const harmonic = Math.cos(x * 0.02 - time * 0.5) * (currentLambda / 2);
+                const y = canvas.height/2 + base + harmonic;
+                x === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
             }
-            ctx.stroke(); time += 0.04; requestAnimationFrame(draw);
+            ctx.stroke();
+            time += 0.05;
+            requestAnimationFrame(draw);
         }
-        render(); draw();
+
+        cmd.onkeydown = (e) => {
+            if (e.key === 'Enter' && cmd.value) {
+                calculateCollapse(cmd.value);
+                cmd.value = '';
+            }
+        };
+
+        log("系统内核已初始化，等待魏珏然指令...", "ok");
+        draw();
     </script>
 </body>
 </html>
