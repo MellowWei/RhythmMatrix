@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>RAPM_V24_TOTAL_CALCULATION</title>
+    <title>RAPM_V24_FORCED_COLLAPSE</title>
     <style>
         :root { --n: #00ffcc; --g: #ffcc00; --b: #050505; --w: #ffffff; --dim: #1a1a1a; }
         body { background: var(--b); color: var(--n); font-family: "PingFang SC", monospace; margin: 0; display: flex; height: 100vh; overflow: hidden; }
@@ -10,10 +10,9 @@
         #log { flex: 1; overflow-y: auto; padding: 120px 25px 20px; scrollbar-width: none; }
         .status-bar { position: absolute; top: 0; width: 550px; padding: 25px; background: rgba(0,0,0,0.9); border-bottom: 1px solid var(--dim); z-index: 11; backdrop-filter: blur(10px); }
         .res-display { font-size: 28px; font-weight: 900; color: var(--w); letter-spacing: -1px; }
-        .card { border: 1px solid var(--dim); background: #080808; padding: 20px; margin-bottom: 20px; animation: slideIn 0.3s ease-out; }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        .card { border: 1px solid var(--dim); background: #080808; padding: 20px; margin-bottom: 20px; }
         .m-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 15px 0; }
-        .m-box { background: #0c0c0c; padding: 10px; border: 1px solid #222; }
+        .m-box { background: #0c0c0c; padding: 10px; border: 1px solid #222; text-align: center;}
         .m-label { font-size: 10px; color: #555; margin-bottom: 5px; text-transform: uppercase; }
         .m-val { font-size: 16px; color: var(--w); font-weight: bold; }
         .section { margin-top: 15px; padding: 12px; font-size: 14px; line-height: 1.6; border-radius: 2px; }
@@ -28,11 +27,11 @@
 <body>
     <div id="s">
         <div class="status-bar">
-            <div class="res-display">全量变量计算内核 V24</div>
-            <div style="font-size:10px; color:var(--n); opacity:0.8; letter-spacing: 2px;">SOCIAL_VARIABLE_CALCULATION</div>
+            <div class="res-display">魏珏然 // 全量变量计算引擎</div>
+            <div style="font-size:10px; color:var(--n); opacity:0.8; letter-spacing: 2px;">SOCIAL_VARIABLE_SET_V24.2</div>
         </div>
         <div id="log"></div>
-        <div id="cmd-box"><input id="cmd" placeholder="输入变量 (例: 性别, 权力, 经济, 科学)..." autofocus autocomplete="off"></div>
+        <div id="cmd-box"><input id="cmd" placeholder="输入变量命题 (如：两口子凑合、专家的话)..." autofocus autocomplete="off"></div>
     </div>
     <div id="stage"><canvas id="c"></canvas></div>
 
@@ -41,83 +40,80 @@
         const cmd = document.getElementById('cmd'), log = document.getElementById('log');
         let State = { hz: 60, lambda: 20, t: 0 };
 
-        // 硬核变量基准数据库
-        const RULES = [
+        // 核心硬编码数据库：通过正则实现全量自然语言命题命中
+        const COLLAPSE_RULES = [
             {
-                keys: ["性别", "身份", "身体", "种族", "民族", "国籍", "角色"],
+                pattern: /性别|身份|身体|种族|民族|国籍|角色|我是谁/,
                 t: "2029.2Y", i: 85, l: 42, p: "88.2%",
-                sci: "身份属性与生物基础脱钩，转化为高维意识的频率标识。旧有的分类标签因无法承载新的生命能量而发生物理碎裂。",
-                con: "这辈子你以为你是谁、哪国人、什么性别，在那节点之后都不再作数。人只剩下频率的区别。"
+                sci: "身份属性与生物基础脱钩，转化为高维意识的频率标识。",
+                con: "这辈子你以为你是谁、哪国人、什么性别都不再作数。人只剩下频率的区别。"
             },
             {
-                keys: ["权力", "法律", "制度", "结构", "官僚", "合法性"],
+                pattern: /权力|法律|制度|官僚|合法性|国家|接班|管理/,
                 t: "2039.0Y", i: 95, l: 40, p: "25.4%",
-                sci: "生理寿命极限强制终结因果惯性。现行制度的合法性基石因物理能量耗尽而坍缩，进入无支撑的自由落体状态。",
+                sci: "生理寿命红线强制拦截因果惯性。现行制度的合法性基石因物理能量耗尽而坍缩。",
                 con: "到日子了，权力就跟电断了一样彻底熄火。法律和规矩没人接茬，因为旧节奏转不动了。"
             },
             {
-                keys: ["意识形态", "语言", "叙事", "象征", "范式"],
+                pattern: /语言|叙事|意识形态|书|沟通|说话|文字|废话/,
                 t: "2037.5Y", i: 160, l: 62, p: "90.1%",
-                sci: "符号系统过载导致信息熵增至临界点。沟通机制由低效的编码解码演进为全感官、跨维度的直感对齐。",
+                sci: "符号系统过载导致信息熵增至临界点。沟通转为全感官直感对齐。",
                 con: "说话不仅没人信，连听都嫌费劲。动动念头对方就懂，现在的这些书和话全是废纸垃圾。"
             },
             {
-                keys: ["道德", "规范", "禁忌", "声望", "地位", "荣誉"],
+                pattern: /道德|规范|禁忌|地位|荣誉|面子|规矩/,
                 t: "2031.6Y", i: 110, l: 55, p: "75.4%",
-                sci: "文明重心位移引发全球价值场重组。禁忌与荣誉的参考系发生根本性扭转，个体行为准则与新中心的节律强制同步。",
+                sci: "文明重心位移引发全球价值场重组。禁忌与荣誉参考系发生根本性扭转。",
                 con: "以前觉得要脸、有德的事，以后可能啥也不是。重心换地方了，规矩得跟着新主人的呼吸走。"
             },
             {
-                keys: ["经济", "财富", "分配", "劳动", "财产", "阶级", "流动性"],
+                pattern: /经济|财富|钱|资产|发财|阶级|财富分配|劳动/,
                 t: "2032.8Y", i: 125, l: 48, p: "68.2%",
-                sci: "劳动意义从物质占有转向能量交换。基于债务和稀缺性的旧阶级结构在生产力逻辑改变时瞬间坍缩。",
+                sci: "劳动意义从物质占有转向能量交换。基于债务的旧阶级结构瞬间坍缩。",
                 con: "挣钱和攒资产的玩法彻底废了。阶级分层会随着你脑子里的频率高低重新洗牌，钱没用了。"
             },
             {
-                keys: ["家庭", "婚姻", "亲密", "性规范", "抚育"],
+                pattern: /家庭|婚姻|两口子|凑合|亲密|性|生孩子|抚育/,
                 t: "2028.5Y", i: 105, l: 60, p: "92.4%",
-                sci: "亲密关系由社会协作协议回归至灵魂共振模型。传统的婚姻与抚育结构因无法适应高频进化而自然解体。",
+                sci: "亲密关系由社会协作协议回归至灵魂共振模型。传统结构自然解体。",
                 con: "两口子和家庭那种死凑合的过法会大面积崩溃。关系的唯一标准是频率对不对，别的不扯淡。"
             },
             {
-                keys: ["知识", "科学", "教育", "权威", "真理"],
+                pattern: /知识|科学|真理|专家|权威|教育|学校/,
                 t: "2038.2Y", i: 155, l: 65, p: "78.5%",
-                sci: "专家权威与实验实证的认知模型遭受高维干射扇击。真相不再通过推导获得，而是作为即时呈现的感知事实存在。",
+                sci: "专家权威与实验实证的认知模型遭受高维干涉扇击。",
                 con: "学校教的东西和专家说的真理，到时候会被外力一巴掌扇碎。真理就是你看到的，不用证明。"
             },
             {
-                keys: ["历史", "记忆", "进步", "未来"],
-                t: "2035.1Y", i: 90, l: 70, p: "81.0%",
-                sci: "线性时间叙事被即时存在态取代。历史不再作为负载干扰当下，集体记忆将被物理性刷新以匹配新的演化路径。",
-                con: "别再想什么进步和未来了，也别被历史绊住。那以后只有‘当下’，记忆会像重装系统一样干净。"
-            },
-            {
-                keys: ["媒体", "平台", "算法", "注意力", "舆论"],
+                pattern: /媒体|算法|刷手机|注意力|舆论|带节奏|平台/,
                 t: "2027.3Y", i: 145, l: 52, p: "95.6%",
-                sci: "算法分配导致的注意力黑洞引发意识过载灾难。公共舆论环境因心理危机爆发而彻底丧失组织能力。",
+                sci: "算法分配导致的注意力黑洞引发意识过载灾难。",
                 con: "算法会把人脑子刷爆，大家最后都看吐了。舆论乱成一锅粥，没人能再带节奏，也没人听节奏。"
             },
             {
-                keys: ["信任", "资本", "认同", "冲突"],
+                pattern: /信任|冲突|认同|认账|死敌|社会资本/,
                 t: "2027.8Y", i: 130, l: 58, p: "91.2%",
-                sci: "社会资本在频率互斥中归零。信任不再建立于共识之上，而是取决于生命能量场是否能够兼容共振。",
+                sci: "社会资本在频率互斥中归零。信任取决于能量场是否能够兼容共振。",
                 con: "人跟人之间彻底没信任了。能不能处，看一眼磁场就明白，频率对不上的直接就是死敌。"
             }
         ];
 
         function calc(input) {
-            let res = RULES.find(r => r.keys.some(k => input.includes(k)));
+            let res = COLLAPSE_RULES.find(r => r.pattern.test(input));
+            
+            // 兜底逻辑：如果连正则都没命中，说明是高频未知变量
             if (!res) {
-                res = { t: "2030.5Y", p: "65.9%", i: 84, l: 58, sci: "正在探测此脉冲的因果厚度。", con: "此节律将在视界节点处完成相位对齐。" };
+                res = { t: "2030.4Y", p: "82.4%", i: 115, l: 45, sci: "文明重心位移引发的全域参数重置。", con: "该命题已进入重心搬家窗口，旧逻辑无法解析，世界将按新频率重排。" };
             }
-            State.hz = res.i; State.lambda = res.l;
+
+            State.hz = res.i || 115; State.lambda = res.l || 45;
             const card = document.createElement('div');
             card.className = 'card';
             card.innerHTML = `
                 <div style="color:var(--g); font-weight:bold; font-size:12px;">脉冲响应：${input}</div>
                 <div class="m-grid">
-                    <div class="m-box"><div class="m-label">视界时间</div><div class="m-val">${res.t}</div></div>
-                    <div class="m-box"><div class="m-label">坍缩概率</div><div class="m-val">${res.p}</div></div>
+                    <div class="m-box"><div class="m-label">视界时间 (T)</div><div class="m-val">${res.t}</div></div>
+                    <div class="m-box"><div class="m-label">坍缩概率 (P)</div><div class="m-val">${res.p}</div></div>
                 </div>
                 <div class="section sci"><b>科学实证：</b>${res.sci}</div>
                 <div class="section con"><b>白话定论：</b>${res.con}</div>
@@ -128,7 +124,7 @@
         function render() {
             canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
             ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
-            ctx.strokeStyle = '#00ffcc'; ctx.beginPath();
+            ctx.strokeStyle = '#00ffcc'; ctx.lineWidth = 2; ctx.beginPath();
             const midY = canvas.height / 2;
             for (let x = 0; x <= canvas.width; x += 5) {
                 const y = midY + Math.sin(x*0.005 + State.t) * State.hz + Math.cos(x*0.01 + State.t) * State.lambda;
