@@ -2,88 +2,88 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>APM_V50_MASTER_FIXED</title>
+    <title>RAPM_V24_MASTER_ACCESS</title>
     <style>
         :root { --n: #00ffcc; --r: #ff0044; --g: #ffcc00; --b: #050505; --w: #ffffff; --dim: #1a1a1a; }
         * { box-sizing: border-box; cursor: crosshair; }
         body { background: var(--b); color: var(--n); font-family: "PingFang SC", sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* 侧边逻辑展示区 */
-        #s { width: 550px; border-right: 1px solid var(--n); padding: 30px; display: flex; flex-direction: column; background: rgba(0,0,0,0.98); z-index: 10; box-shadow: 15px 0 50px rgba(0,0,0,1); }
+        /* 侧边信息流：DECONSTRUCTION CORE */
+        #s { width: 500px; border-right: 1px solid var(--n); padding: 30px; display: flex; flex-direction: column; background: rgba(0,0,0,0.95); z-index: 10; }
         #log { flex: 1; overflow-y: auto; scrollbar-width: none; padding-top: 100px; }
         #log::-webkit-scrollbar { display: none; }
         
-        .status-bar { position: absolute; top: 0; left: 0; width: 550px; padding: 30px; background: #000; border-bottom: 1px solid var(--dim); z-index: 11; }
-        .res-display { font-size: 42px; font-weight: 900; color: var(--w); letter-spacing: -2px; }
+        .header { position: absolute; top: 0; left: 0; width: 500px; padding: 40px 30px; background: #000; z-index: 11; }
+        .v-tag { font-size: 24px; font-weight: 900; color: var(--n); letter-spacing: 2px; margin-bottom: 5px; }
+        .v-sub { font-size: 10px; color: #444; letter-spacing: 1px; }
 
-        /* 卡片设计：严格对齐魏珏然截图风格 */
-        .card { border-left: 4px solid var(--g); background: rgba(255,255,255,0.02); padding: 25px; margin-bottom: 30px; border: 1px solid var(--dim); border-left: 4px solid var(--g); animation: pulseIn 0.5s ease-out; }
-        @keyframes pulseIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        /* 卡片：复刻 V24.2 截图质感 */
+        .card { border-left: 5px solid var(--r); background: rgba(255,255,255,0.01); padding: 25px; margin-bottom: 35px; border: 1px solid #111; border-left: 5px solid var(--r); position: relative; }
+        .q { color: var(--g); font-size: 16px; margin-bottom: 25px; font-weight: bold; }
         
-        .q { color: var(--g); font-size: 16px; margin-bottom: 20px; font-weight: bold; letter-spacing: 1px; }
-        .matrix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
-        .m-item { font-size: 11px; color: #777; letter-spacing: 1px; }
-        .m-item b { color: var(--w); font-size: 24px; display: block; margin-top: 6px; font-family: "Courier New", monospace; }
-        .m-item span { display: block; color: #555; font-size: 10px; margin-top: 6px; line-height: 1.4; }
-
-        .t { font-size: 14px; color: #bbb; border-top: 1px solid #222; padding-top: 20px; }
-        .t b { color: var(--n); display: block; margin-bottom: 10px; font-size: 12px; }
-        .conclusion { color: var(--w); background: rgba(255,255,255,0.03); padding: 18px; margin-top: 15px; border-left: 2px solid var(--g); font-size: 15px; }
-
-        #cmd { background: #000; border: 1px solid var(--n); color: #fff; width: 100%; padding: 25px; font-size: 18px; outline: none; }
+        .matrix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+        .m-item { font-size: 12px; color: #666; }
+        .m-item b { color: var(--w); font-size: 26px; display: block; margin-top: 8px; font-family: "Courier New", monospace; }
         
-        /* 右侧节律震动动态图 */
+        .res-text { font-size: 14px; color: #aaa; line-height: 1.8; margin-top: 20px; border-top: 1px solid #222; padding-top: 20px; }
+        .res-text b { color: var(--n); display: block; margin-bottom: 12px; font-size: 13px; }
+        .verdict { color: var(--w); background: rgba(255,255,255,0.03); padding: 15px; border-left: 2px solid var(--g); font-size: 15px; margin-top: 15px; }
+
+        #cmd-box { padding: 20px 0; border-top: 1px solid #222; }
+        #cmd { background: #000; border: 1px solid var(--n); color: #fff; width: 100%; padding: 20px; font-size: 16px; outline: none; }
+        
+        /* 右侧：DECONSTRUCTION VISUAL */
         #stage { flex: 1; background: #000; position: relative; }
         canvas { width: 100%; height: 100%; }
-        #tag { position: absolute; bottom: 40px; right: 40px; font-size: 11px; color: rgba(0, 255, 204, 0.2); letter-spacing: 8px; text-transform: uppercase; transform: rotate(-90deg); transform-origin: right bottom; }
     </style>
 </head>
 <body>
     <div id="s">
-        <div class="status-bar">
-            <div style="font-size:10px; opacity:0.6; letter-spacing:4px; margin-bottom:8px;">APM_V50_CORRECTED_CORE</div>
-            <div class="res-display" id="main_hz">0.7610</div>
+        <div class="header">
+            <div class="v-tag">RAPM V24.2</div>
+            <div class="v-sub">DECONSTRUCTION CORE | ACCESS: SYSTEM_ROOT</div>
         </div>
         <div id="log"></div>
-        <input id="cmd" placeholder="输入脉冲指令..." autofocus autocomplete="off">
+        <div id="cmd-box">
+            <input id="cmd" placeholder="输入变量、趋势或指令..." autofocus autocomplete="off">
+        </div>
     </div>
     <div id="stage">
         <canvas id="c"></canvas>
-        <div id="tag">Causal Vibration Core</div>
     </div>
 
     <script>
         const canvas = document.getElementById('c'), ctx = canvas.getContext('2d');
-        const cmd = document.getElementById('cmd'), log = document.getElementById('log'), hzDisp = document.getElementById('main_hz');
+        const cmd = document.getElementById('cmd'), log = document.getElementById('log');
 
         let State = { p: 0.761, i: 140, time: 0, targetI: 140 };
 
-        // 核心真值库：基于魏珏然截图全量对齐
-        const TRUTH_BASE = {
-            "性别": { p: 76.1, t: "2039.9Y", i: 140, d: 54.1, w: "SEVERE", sci: "社会转向以‘心理认同’和‘功能属性’为基础的新秩序，传统的生理性别分类和家庭逻辑面临彻底解构。", con: "生理锚点正在消失，人类正在进入基于节律认同的新契约时代。" },
-            "语言": { p: 90.1, t: "2037.5Y", i: 160, d: 62.5, w: "SEVERE", sci: "高频语义坍缩。传统语言失效，进入直感共振时代。", con: "掌控者无需通过语言确认，因果震荡即是沟通。" },
-            "文化中心": { p: 46.3, t: "2030.4Y", i: 83, d: 31.9, w: "62.0%", sci: "即时因果扫描显示重心位移，历史参考数据已失效。", con: "守住你的内在中心，你就是源头。" },
-            "经济危机": { p: 54.2, t: "2027.6Y", i: 88, d: 39, w: "89.8%", sci: "检测到RESONANCE（共振）状态，风险等级：SEVERE。", con: "完成资产频率重组，对齐风险爆发点。" }
+        // 全量对齐 mellowwei.github.io 的真值字典
+        const V24_DB = {
+            "性别": { p: "76.1%", t: "2039.9年", i: "140HZ", d: "54.1%", w: "SEVERE", sci: "社会将转向以‘心理认同’和‘功能属性’为基础的新秩序，传统的生理性别分类和家庭逻辑将面临彻底解构。", con: "生理锚点正在消失，人类正在进入基于节律认同的新契约时代。" },
+            "语言": { p: "90.1%", t: "2037.5年", i: "160HZ", d: "62.5%", w: "SEVERE", sci: "高频语义坍缩。传统语言作为信息载体即将失效，沟通进入直感对齐时代。", con: "掌控者无需通过语言确认，因果震荡即是沟通。" },
+            "习近平": { p: "60%", t: "未来点", i: "75HZ", d: "20λ", w: "50%", sci: "系统正在扫描此感官脉冲的底层频段。瞬时因果优先，历史数据置信度极低。", con: "每一段节律都是为了与你和解。" },
+            "外星人": { p: "60%", t: "未来点", i: "75HZ", d: "20λ", w: "50%", sci: "即时脉冲扫描中。当前跨维度数据置信度极低，尚未形成绝对闭环。", con: "宇宙从未抛弃过任何一个觉察者。" },
+            "文化中心": { p: "46.3%", t: "2030.4Y", i: "83HZ", d: "31.9λ", w: "62.0%", sci: "跨维度数据置信度为 43.9%, 无法给出绝对实证。系统正在扫描底层频段。", con: "即使目前无法完全看清全貌，也要相信你的直觉。" }
         };
 
         function createCard(input) {
-            const entry = Object.keys(TRUTH_BASE).find(k => input.includes(k));
-            const d = entry ? TRUTH_BASE[entry] : { p: 60, t: "演化中", i: 75, d: 20, w: "MID", sci: "即时脉冲扫描中，排除过载防御误判。", con: "节律正在对齐。" };
+            const entry = Object.keys(V24_DB).find(k => input.includes(k));
+            const d = entry ? V24_DB[entry] : { p: "扫描中", t: "探测中", i: "75HZ", d: "未知", w: "MID", sci: "新脉冲已挂载。正在通过即时因果震荡进行相位对齐。", con: "新节律已录入。宇宙从未抛弃过任何一个觉察者。" };
             
-            State.p = d.p / 100; State.targetI = d.i;
-            hzDisp.innerText = (d.p / 100).toFixed(4);
+            State.targetI = parseInt(d.i) || 75;
+            State.p = parseFloat(d.p) / 100 || 0.5;
 
             const card = document.createElement('div');
             card.className = 'card';
             card.innerHTML = `<div class="q">解析指令：${input}</div>
                 <div class="matrix-grid">
-                    <div class="m-item">演化概率<b>${d.p}%</b><span>命题在因果链中的确定性。</span></div>
-                    <div class="m-item">爆发节点<b>${d.t}</b><span>频率坍缩的具体时刻。</span></div>
-                    <div class="m-item">脉冲强度<b>${d.i}HZ</b><span>清理旧秩序的动力烈度。</span></div>
-                    <div class="m-item">节律深度<b>${d.d}%</b><span>λ渗透深度，不可主观抹平。</span></div>
-                    <div class="m-item" style="grid-column: span 2;">风险等级/权重<b>${d.w}</b><span>全域场能重心占比，掌控它即掌控全局。</span></div>
+                    <div class="m-item">爆发节点<b>${d.t}</b></div>
+                    <div class="m-item">演化概率<b>${d.p}</b></div>
+                    <div class="m-item">影响深度<b>${d.d}</b></div>
+                    <div class="m-item">风险等级/权重<b>${d.w}</b></div>
                 </div>
-                <div class="t"><b>科学实证 [事实严谨版]</b>${d.sci}<div class="conclusion"><b>结论直言</b>${d.con}</div></div>`;
+                <div class="res-text"><b>结论直言：</b>${d.sci}<div class="verdict">${d.con}</div></div>`;
             return card;
         }
 
@@ -91,12 +91,12 @@
             canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             State.i += (State.targetI - State.i) * 0.05;
-            State.time += (0.01 + State.p * 0.05);
+            State.time += 0.02 + (State.p * 0.05);
             
-            ctx.strokeStyle = '#00ffcc'; ctx.lineWidth = 2; ctx.beginPath();
-            for (let x = 0; x < canvas.width; x += 2) {
-                // 因果震荡公式：y = sin(x * frequency + time) * amplitude
-                const y = canvas.height / 2 + Math.sin(x * 0.005 + State.time) * State.i * Math.sin(x * 0.002);
+            ctx.strokeStyle = '#00ffcc'; ctx.lineWidth = 1.5; ctx.beginPath();
+            // 右侧震荡图逻辑：去中心化动态波形
+            for (let x = 0; x < canvas.width; x += 5) {
+                const y = canvas.height / 2 + Math.sin(x * 0.005 + State.time) * State.i * Math.sin(x * 0.002 + State.time * 0.5);
                 x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
             }
             ctx.stroke();
