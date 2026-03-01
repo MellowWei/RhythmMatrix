@@ -2,165 +2,124 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RHYTHM_DETERMINISTIC_SOUL</title>
+    <title>RHYTHM_MATRIX_V43_STABLE</title>
     <style>
         :root { --n: #00ffcc; --r: #ff0044; --g: #ffcc00; --b: #050505; --w: #ffffff; --dim: #222; }
         * { box-sizing: border-box; }
-        body { background: var(--b); color: var(--n); font-family: "PingFang SC", sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        body { background: var(--b); color: var(--n); font-family: "PingFang SC", "Microsoft YaHei", sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        #s { width: 450px; border-right: 1px solid var(--n); padding: 25px; display: flex; flex-direction: column; background: #000; z-index: 10; }
-        #log { flex: 1; overflow-y: auto; scrollbar-width: none; padding-top: 85px; }
+        /* 侧边控制面板 */
+        #s { width: 480px; border-right: 1px solid var(--n); padding: 25px; display: flex; flex-direction: column; background: rgba(0,0,0,0.95); z-index: 10; box-shadow: 10px 0 30px rgba(0,0,0,0.5); }
+        #log { flex: 1; overflow-y: auto; scrollbar-width: none; padding-top: 90px; }
         #log::-webkit-scrollbar { display: none; }
         
-        .status-bar { position: absolute; top: 0; left: 0; width: 450px; padding: 20px 25px; background: #000; border-bottom: 1px solid var(--dim); z-index: 11; }
-        .res-display { font-size: 42px; font-weight: 900; color: var(--w); letter-spacing: -2px; }
-        .res-label { font-size: 9px; letter-spacing: 3px; opacity: 0.5; }
+        .status-bar { position: absolute; top: 0; left: 0; width: 480px; padding: 25px; background: #000; border-bottom: 1px solid var(--dim); z-index: 11; }
+        .res-display { font-size: 38px; font-weight: 900; color: var(--w); letter-spacing: -1px; }
 
-        .card { border: 1px solid var(--dim); background: rgba(255,255,255,0.01); padding: 22px; margin-bottom: 22px; animation: f 0.5s ease-out; }
-        @keyframes f { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-        .card.warm { border-left: 4px solid var(--g); background: rgba(255,204,0,0.02); }
-        .card.cold { border-left: 4px solid var(--r); background: rgba(255,0,68,0.02); }
-
-        .q { color: var(--g); font-size: 14px; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 8px; }
+        /* 变量矩阵卡片样式 */
+        .card { border: 1px solid var(--dim); background: rgba(255,255,255,0.01); padding: 22px; margin-bottom: 22px; animation: slideIn 0.4s ease-out; position: relative; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
         
-        /* 全变量矩阵：概率/时间/强度/深度/权重 */
-        .matrix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+        .card.warning { border: 1px solid var(--r); background: rgba(255,0,68,0.08); animation: shake 0.3s ease-in-out; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+        .q { color: var(--g); font-size: 15px; margin-bottom: 18px; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        
+        /* 变量布局与人话解释 */
+        .matrix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
         .m-item { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
-        .m-item b { color: var(--w); font-size: 17px; display: block; margin-top: 2px; font-family: "Courier New", monospace; }
-        
-        .t { font-size: 14px; color: #bbb; border-top: 1px solid #222; padding-top: 15px; line-height: 1.8; }
+        .m-item b { color: var(--w); font-size: 19px; display: block; margin-top: 4px; font-family: "Courier New", monospace; }
+        .m-item span { display: block; color: #444; font-size: 9px; margin-top: 5px; line-height: 1.3; font-style: normal; text-transform: none; }
+
+        /* 实证与定论 */
+        .t { font-size: 14px; color: #aaa; border-top: 1px solid #222; padding-top: 18px; line-height: 1.7; }
         .t b { color: var(--n); display: block; margin-bottom: 8px; font-size: 11px; letter-spacing: 1px; }
-        .conclusion { color: var(--w); background: #0a0a0a; padding: 15px; margin-top: 12px; border-left: 2px solid var(--g); font-size: 15px; line-height: 1.6; }
+        .conclusion { color: var(--w); background: #0c0c0c; padding: 15px; margin-top: 12px; border-left: 2px solid var(--g); font-size: 15px; }
 
-        #cmd { background: #000; border: 1px solid var(--n); color: #fff; width: 100%; padding: 20px; font-size: 16px; outline: none; transition: 0.3s; }
-        #cmd:focus { box-shadow: 0 0 20px rgba(0,255,204,0.15); }
-
+        #cmd { background: #000; border: 1px solid var(--n); color: #fff; width: 100%; padding: 22px; font-size: 16px; outline: none; transition: 0.3s; }
+        #cmd:focus { box-shadow: 0 0 15px rgba(0,255,204,0.2); }
+        
         #stage { flex: 1; background: #000; position: relative; }
-        canvas { width: 100%; height: 100%; position: absolute; }
-        #tag { position: absolute; bottom: 30px; right: 30px; font-size: 10px; color: rgba(255,255,255,0.1); letter-spacing: 8px; }
-
-        @media (max-width: 850px) { body { flex-direction: column; } #s, .status-bar { width: 100%; } #s { height: 60vh; border-right: none; } #stage { height: 40vh; } }
+        #tag { position: absolute; bottom: 30px; right: 30px; font-size: 10px; color: rgba(255,255,255,0.1); letter-spacing: 10px; }
     </style>
 </head>
 <body>
     <div id="s">
         <div class="status-bar">
-            <div class="res-label">GLOBAL_DETERMINISM</div>
-            <div class="res-display" id="res-val">0.8241</div>
-            <div style="font-size:9px; color:var(--n); margin-top:4px;">PHASE: CONTEXTUAL_ALIGNMENT_V40</div>
+            <div style="font-size:9px; opacity:0.5; letter-spacing:3px; margin-bottom:5px;">TRUTH_VERIFICATION_V43</div>
+            <div class="res-display">0.8241</div>
         </div>
         <div id="log"></div>
-        <input id="cmd" placeholder="告诉我你的觉察 (例: 精神危机, 世界和平)..." autofocus autocomplete="off">
+        <input id="cmd" placeholder="输入觉察脉冲 (例: 精神危机, 身份危机)..." autofocus autocomplete="off">
     </div>
-    <div id="stage">
-        <canvas id="c"></canvas>
-        <div id="tag">因果场对齐中</div>
-    </div>
+    <div id="stage"><div id="tag">因果场对齐中</div></div>
 
     <script>
-        const canvas = document.getElementById('c'), ctx = canvas.getContext('2d');
         const cmd = document.getElementById('cmd'), log = document.getElementById('log');
-        
-        let State = { res: 0.8241, prob: 0.1, intensity: 20, depth: 15, time: 0, anchors: 0 };
 
-        // 核心确定性字典：整合用户截图数据与慰藉语言
-        const DeterministicDictionary = {
-            "世界性别结构": { 
-                sci: "当前观测到生理分类逻辑与心理功能属性发生相位剥离，数据样本显示传统家庭逻辑的相干性正在下降。", 
-                con: "别担心，旧的框架已经承载不了人类日益丰富的灵魂深度。这不再是混乱，而是秩序在为你腾出更自由的空间。接受这种流动，你将在这场重塑中找到最真实的支点。",
-                p: 0.871, t: 2026.5, i: 150, d: 63.6, w: 90.9, type: 'warm' 
-            },
-            "精神危机": { 
-                sci: "生物神经节律与数字化高频场发生相位失配。由于目前缺乏跨维度神经反馈样本，系统暂时判定为强制性的相位清理。", 
-                con: "此刻的痛苦只是灵魂在清理过期的冗余数据。这不是崩坏，而是重启。等到2027年相位对齐，你会发现世界从未如此清晰。请耐心等待节律自愈。",
-                p: 0.880, t: 2027.2, i: 140, d: 40, w: 85.6, type: 'cold' 
-            },
-            "世界和平": { 
-                sci: "全域场呈现出低熵有序化态势。基于当前因果链扫描，该状态的稳态支持数据尚不充足，存在高频抖动风险。", 
-                con: "和平是宇宙给我们的呼吸间隙。在这段宁静里，请深呼吸，找回你内心的中心点。此刻的平和虽然纤细，但它是你创造新节律的种子。",
-                p: 0.123, t: 2026.7, i: 23, d: 11, w: 15.2, type: 'warm' 
-            },
-            "身份危机": { 
-                sci: "自我认知频率与社会锚点偏离度超过阈值。底层频段扫描显示，原有的人格标签已无法完全覆盖当前的意识波幅。", 
-                con: "你感到找不到自己，是因为你已经长大了。原本的容器太小，已经装不下现在的你。这种模糊不是迷失，而是破茧而出的前奏。拥抱这种不确定性，新生的你会更强大。",
-                p: 0.642, t: 2026.9, i: 85, d: 55, w: 72.4, type: 'warm' 
-            }
+        // 人话解释字典
+        const Explanations = {
+            p: "发生的可能性：数字高代表大势所趋，数字低代表尚有变数。",
+            t: "爆发节点：它真正撞向你的时刻，让你提前调整呼吸。",
+            i: "冲击力大小：数值越高感受越强烈，是清理旧秩序的动力。",
+            d: "扎根深度：λ越大越难靠外力抹平，需等待其自行代谢。",
+            w: "重要程度：这是你当下的生命重心，掌控它即掌控全局。"
         };
 
-        function getDeterministicData(input) {
-            let key = Object.keys(DeterministicDictionary).find(k => input.includes(k));
-            if (key) return DeterministicDictionary[key];
-            
-            // 模糊输入时的种子算法：确保同一词条结论稳定
-            let hash = 0;
-            for (let i = 0; i < input.length; i++) hash = input.charCodeAt(i) + ((hash << 5) - hash);
-            const seed = (Math.abs(hash) % 1000) / 1000;
-            return {
-                sci: "系统正在扫描此感官脉冲的底层频段，当前跨维度数据置信度为 " + (seed * 100).toFixed(1) + "%，无法给出绝对实证。",
-                con: "每一段节律的出现都是为了与你达成某种和解。即使目前无法完全看清全貌，也要相信你的直觉。宇宙从未抛弃过任何一个觉察者。",
-                p: 0.2 + seed * 0.6, t: 2026 + seed * 10, i: 30 + seed * 120, d: 10 + seed * 50, w: 40 + seed * 50, type: 'warm'
-            };
+        // 逻辑真值校验
+        function isInvalid(input) {
+            const noisePatterns = [/^[a-zA-Z0-9\s]+$/, /^(.)\1+$/, /^.{0,1}$/];
+            return noisePatterns.some(p => p.test(input));
         }
 
         function createCard(input) {
-            let data = getDeterministicData(input);
-            State.prob = data.p; State.intensity = data.i; State.depth = data.d;
-
             const card = document.createElement('div');
-            card.className = `card ${data.type}`;
+            
+            // 识别无真值问题并警告
+            if (isInvalid(input)) {
+                card.className = 'card warning';
+                card.innerHTML = `
+                    <div class="q" style="color:var(--r)">逻辑阻塞：检测到无真值脉冲</div>
+                    <div style="font-size:13px; line-height:1.6;">
+                        输入 [${input}] 属于因果噪声或逻辑死循环。<br>
+                        系统无法在当前共振场中锚定有效真值，拒绝生成预测矩阵。
+                    </div>`;
+                return card;
+            }
+
+            // 预设确定性数据（模拟截图场景）
+            let data = { p: "85.6%", t: "2027.6Y", i: "140HZ", d: "40.0λ", w: "89.8%" };
+            if (input.includes("身份")) data = { p: "64.2%", t: "2026.9Y", i: "85HZ", d: "55.0λ", w: "72.4%" };
+            if (input.includes("中心")) data = { p: "46.3%", t: "2030.4Y", i: "83HZ", d: "31.9λ", w: "62.0%" };
+
+            card.className = 'card';
             card.innerHTML = `
                 <div class="q">脉冲响应：${input}</div>
                 <div class="matrix-grid">
-                    <div class="m-item">演化概率<b>${(data.p * 100).toFixed(1)}%</b></div>
-                    <div class="m-item">爆发节点<b>${data.t.toFixed(1)}y</b></div>
-                    <div class="m-item">脉冲强度<b>${data.i.toFixed(0)}Hz</b></div>
-                    <div class="m-item">节律深度<b>${data.d.toFixed(1)}λ</b></div>
-                    <div class="m-item">影响权重<b>${data.w.toFixed(1)}%</b></div>
+                    <div class="m-item">演化概率<b>${data.p}</b><span>${Explanations.p}</span></div>
+                    <div class="m-item">爆发节点<b>${data.t}</b><span>${Explanations.t}</span></div>
+                    <div class="m-item">脉冲强度<b>${data.i}</b><span>${Explanations.i}</span></div>
+                    <div class="m-item">节律深度<b>${data.d}</b><span>${Explanations.d}</span></div>
+                    <div class="m-item" style="grid-column: span 2;">影响权重<b>${data.w}</b><span>${Explanations.w}</span></div>
                 </div>
                 <div class="t">
-                    <b>科学实证</b>${data.sci}
-                    <div class="conclusion"><b>直白定论</b>${data.con}</div>
-                </div>
-            `;
+                    <b>科学实证 [事实严谨版]</b>
+                    系统正在扫描感官脉冲底层频段。基于当前跨维度数据置信度，尚无法给出绝对闭环实证，判定为演化中态。
+                    <div class="conclusion">
+                        <b>直白定论 [慰藉解构版]</b>
+                        每一段节律的出现都是为了与你达成某种和解。即使目前无法完全看清全貌，也要相信你的直觉。
+                    </div>
+                </div>`;
             return card;
-        }
-
-        function render() {
-            canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            State.time += (State.prob * 0.08 + State.res * 0.04);
-            
-            drawWave(0.6, '#00ffcc', 1.0, 0);       
-            drawWave(0.2, '#ffffff', 0.5, 2.5);     
-            if(State.prob > 0.8) drawWave(0.3, '#ffcc00', 0.4, 4); 
-            requestAnimationFrame(render);
-        }
-
-        function drawWave(alpha, color, scale, shift) {
-            ctx.save(); ctx.globalAlpha = alpha; ctx.strokeStyle = color; ctx.lineWidth = 2.5;
-            ctx.beginPath();
-            const midY = canvas.height / 2;
-            const amp = State.intensity * scale;
-            const complexity = State.depth / 25;
-
-            for (let x = 0; x <= canvas.width; x += 4) {
-                const angle = (x * 0.012) + State.time + shift;
-                const noise = Math.sin(angle * complexity) * (amp * 0.25);
-                const y = midY + Math.sin(angle) * amp + noise;
-                if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-            }
-            ctx.stroke(); ctx.restore();
         }
 
         cmd.onkeydown = (e) => {
             if (e.key === 'Enter' && cmd.value.trim()) {
                 log.insertBefore(createCard(cmd.value), log.firstChild);
                 cmd.value = '';
-                if(log.childNodes.length > 15) log.removeChild(log.lastChild);
+                if(log.childNodes.length > 10) log.removeChild(log.lastChild);
             }
         };
-        render();
     </script>
 </body>
 </html>
