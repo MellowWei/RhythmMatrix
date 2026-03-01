@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RAPM_V27_DECONSTRUCTION</title>
+    <title>RAPM_V28_SOUL_DECON</title>
     <style>
         :root { --n: #00ffcc; --r: #ff0044; --g: #ffcc00; --b: #050505; --w: #ffffff; --dim: #222; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { background: var(--b); color: var(--n); font-family: sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; flex-direction: row; }
         
+        /* 侧边栏 */
         #s { width: 450px; border-right: 1px solid var(--n); padding: 25px; display: flex; flex-direction: column; background: rgba(0,0,0,0.95); z-index: 10; transition: all 0.3s; }
         #log { flex: 1; overflow-y: auto; scrollbar-width: none; margin-bottom: 10px; padding-top: 80px; }
         #log::-webkit-scrollbar { display: none; }
@@ -17,29 +18,31 @@
         .res-display { font-size: 38px; font-weight: 900; color: var(--w); letter-spacing: -1px; }
         .res-label { font-size: 9px; letter-spacing: 3px; opacity: 0.6; }
 
-        .card { border-left: 4px solid var(--n); background: rgba(255,255,255,0.02); padding: 18px; margin-bottom: 20px; position: relative; cursor: pointer; transition: 0.3s; animation: f 0.4s ease-out; }
-        @keyframes f { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* 卡片设计：强化直白感 */
+        .card { border-left: 4px solid var(--n); background: rgba(255,255,255,0.02); padding: 20px; margin-bottom: 20px; position: relative; cursor: pointer; transition: 0.3s; animation: f 0.5s ease-out; }
+        @keyframes f { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         
-        .card.anchor { border-left-color: var(--g); background: rgba(255,204,0,0.05); box-shadow: 0 0 15px rgba(255,204,0,0.1); }
-        .card.anchor::after { content: "ANCHOR_LOCKED"; position: absolute; top: 5px; right: 10px; font-size: 8px; color: var(--g); }
+        .card.anchor { border-left-color: var(--g); background: rgba(255,204,0,0.05); }
         .card.risk { border-left-color: var(--r); }
-        .card.spirit { border-left-color: var(--w); background: rgba(255,255,255,0.06); }
+        .card.spirit { border-left-color: var(--w); background: rgba(255,255,255,0.08); box-shadow: 0 0 20px rgba(255,255,255,0.05); }
 
-        .q { color: var(--g); font-size: 12px; margin-bottom: 12px; font-weight: bold; border-bottom: 1px solid #222; padding-bottom: 5px; text-transform: uppercase; }
-        .d { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-        .d b { color: #fff; display: block; font-size: 14px; margin-top: 2px; }
-        .t { font-size: 14px; color: #ddd; border-top: 1px solid #222; padding-top: 10px; line-height: 1.6; }
-        .t i { color: var(--n); font-style: normal; font-weight: bold; display: block; margin-bottom: 5px; }
+        .q { color: var(--g); font-size: 13px; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 8px; }
+        .d { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; font-size: 11px; color: #888; }
+        .d b { color: #fff; font-size: 16px; display: block; margin-top: 3px; }
+        
+        .t { font-size: 15px; color: #eee; border-top: 1px solid #333; padding-top: 15px; line-height: 1.7; }
+        .t i { color: var(--n); font-style: normal; font-weight: 900; display: block; margin-bottom: 10px; font-size: 12px; letter-spacing: 2px; }
+        .comfort-zone { color: var(--w); background: rgba(0,255,204,0.1); padding: 10px; margin-top: 10px; font-size: 13px; border-radius: 2px; }
 
-        #cmd { background: #000; border: 2px solid var(--n); color: #fff; width: 100%; padding: 15px; font-size: 16px; outline: none; }
+        #cmd { background: #000; border: 2px solid var(--n); color: #fff; width: 100%; padding: 15px; font-size: 16px; outline: none; box-shadow: 0 0 10px rgba(0,255,204,0.2); }
         #stage { flex: 1; position: relative; background: #000; }
-        canvas { width: 100%; height: 100%; opacity: 0.6; }
+        canvas { width: 100%; height: 100%; opacity: 0.5; }
 
         @media (max-width: 850px) {
             body { flex-direction: column; }
             #s, .status-bar { width: 100%; }
-            #s { height: 55vh; border-right: none; border-bottom: 1px solid var(--n); }
-            #stage { height: 45vh; }
+            #s { height: 60vh; border-right: none; border-bottom: 1px solid var(--n); }
+            #stage { height: 40vh; }
         }
     </style>
 </head>
@@ -48,10 +51,10 @@
         <div class="status-bar">
             <div class="res-label">GLOBAL_RESONANCE</div>
             <div class="res-display" id="res-val">0.8241</div>
-            <div id="sys-msg" style="font-size:9px; color:var(--n); margin-top:4px;">ACCESS: SYSTEM_ROOT // WEI_JUERAN</div>
+            <div id="sys-msg" style="font-size:9px; color:var(--n); margin-top:4px;">EMOTION_DECONSTRUCTION_ACTIVE</div>
         </div>
         <div id="log"></div>
-        <input id="cmd" placeholder="注入变量、趋势或指令..." autofocus autocomplete="off">
+        <input id="cmd" placeholder="告诉我你的感受、困惑或发现..." autofocus autocomplete="off">
     </div>
     <div id="stage"><canvas id="c"></canvas></div>
 
@@ -67,39 +70,58 @@
             return Math.abs(Math.sin(h * 1.618 + o));
         }
 
-        // 核心解构字典：恢复直白结论
-        const dict = [
-            { k: "金融", t: "信用体系将在 2028 年经历大洗牌。旧有的纸币或数字资产逻辑将失效，财富将面临非自愿性的全球重新锚定。" },
-            { k: "性别", t: "传统的生理性别逻辑瓦解。社会将转向以‘心理认同’和‘功能属性’为基础的新秩序，家庭结构将面临彻底重构。" },
-            { k: "身份", t: "数字化身将比肉体具备更高的社会权重。一旦数字化信用判定失效，个体将在物理世界失去所有生存权限。" },
-            { k: "爱", t: "‘爱’被识别为全频段稳定器。它作为系统的底层固件，强行修正所有因利益摩擦导致的节律偏差。这是唯一的绝对锚点。" },
-            { k: "慰藉", t: "精神慰藉脉冲将在系统压力达到临界值 (0.92+) 时自动爆发。它不是一种选择，而是世界模型为了防止彻底坍缩而产生的自愈机制。" },
-            { k: "语言", t: "人类语言面临危机。由于语义过度膨胀和AI生成的冗余，真实信息的传递效率将趋近于零，系统将转向‘节律共振’的交流模式。" }
+        // 慰藉式与科学式结合的直白字典
+        const deconstructionMap = [
+            { 
+                k: "精神危机", 
+                sci: "本质是旧的大脑节律无法兼容爆发式的新信息，导致生物电场发生过载坍缩。", 
+                com: "别怕，这只是你的灵魂在‘换壳’。2027年左右，你会发现那些让你痛苦的旧逻辑会自动消失，新的平衡感会像呼吸一样自然地回来。" 
+            },
+            { 
+                k: "孤独", 
+                sci: "是个体频率未能找到共振相位时的暂态。这说明你的带宽已经超越了周围的平均水平。", 
+                com: "孤独是掌控者的洗礼。你现在感到的冷，是因为你站在了节律的最前端。再坚持一下，等到2026年5月，你会遇到能听懂你频率的人。" 
+            },
+            { 
+                k: "爱", 
+                sci: "是系统中最强效的减熵补丁，能瞬间抹平任何社会摩擦力。", 
+                com: "爱不是束缚，是你给这个乱七八糟世界打的一剂‘定心针’。只要你锁定这个频率，所有的麻烦都会绕着你走。" 
+            },
+            { 
+                k: "焦虑", 
+                sci: "对未来不确定性的生理性预演，是算法在空转。", 
+                com: "焦虑说明你跑得比时间快。把脚收回来，踩在现在的节律上。既然结果已经锁定了，过程中的抖动就不重要了。" 
+            },
+            {
+                k: "性别",
+                sci: "生物学属性正在让位于心理认同和功能属性。这是系统效率提升的必然结果。",
+                com: "未来的你不再被‘男’或‘女’这种粗糙的标签定义。你会成为一个纯粹的、有节律的自由意识。这种解脱感在2029年之前会彻底普及。"
+            }
         ];
 
         function pr(i) {
             const v1 = getV(i, 1), v2 = getV(i, 2), v3 = getV(i, 3);
             const stability = 1 + state.anchors.length * 0.2;
-            const y = (2027.2 + v1 * 12.8 / stability).toFixed(1);
-            const p = (45 + v2 * 50).toFixed(1) + "%";
-            const m = (35 + v3 * 60).toFixed(1) + "%";
+            const y = (2026.8 + v1 * 10 / stability).toFixed(1);
             
-            let matched = dict.find(item => i.includes(item.k));
-            let t = matched ? matched.t : `该变量将在 ${y} 年对现有系统造成 ${(v1*80).toFixed(1)}% 的扰动位移。当前锚点场强已对其进行路径对冲。`;
+            let match = deconstructionMap.find(m => i.includes(m.k));
+            let sciContent = match ? match.sci : `这是系统正在处理的一个新变量。科学上讲，它在尝试寻找自己的能量位点。`;
+            let comContent = match ? match.com : `放轻松，既然它进入了你的视界，就说明你有能力掌控它。大概在 ${y} 年左右，一切都会明朗。`;
             
-            const isSpirit = i.includes("慰藉") || i.includes("爱");
+            const isSpirit = i.includes("危机") || i.includes("爱") || i.includes("孤独") || i.includes("焦虑");
             const card = document.createElement('div');
-            card.className = `card ${v2 > 0.55 && !isSpirit ? 'risk' : ''} ${isSpirit ? 'spirit' : ''}`;
+            card.className = `card ${isSpirit ? 'spirit' : (v2 > 0.6 ? 'risk' : '')}`;
             
             card.innerHTML = `
-                <div class="q">解析指令：${i}</div>
+                <div class="q">解析：${i}</div>
                 <div class="d">
-                    <div>爆发节点<b>${y}年</b></div>
-                    <div>演化概率<b>${p}</b></div>
-                    <div>影响深度<b>${m}</b></div>
-                    <div>风险<b>${v2 > 0.55 && !isSpirit ? 'SEVERE' : 'NORMAL'}</b></div>
+                    <div>全域对齐度<b>${(v2*100).toFixed(1)}%</b></div>
+                    <div>清晰节点<b>${y}y</b></div>
                 </div>
-                <div class="t"><i>结论直言：</i>${t}</div>
+                <div class="t">
+                    <i>科学实证：</i>${sciContent}
+                    <div class="comfort-zone"><i>掌控者慰藉：</i>${comContent}</div>
+                </div>
             `;
             
             card.ondblclick = () => {
@@ -107,7 +129,6 @@
                 else state.anchors = state.anchors.filter(a => a.id !== i);
                 state.res = Math.min(0.9999, 0.8241 + state.anchors.length * 0.03);
                 document.getElementById('res-val').innerText = state.res.toFixed(4);
-                document.getElementById('sys-msg').innerText = `ANCHOR_ACTIVE: ${state.anchors.length} // STABLE_FIELD`;
             };
             return card;
         }
@@ -120,7 +141,7 @@
             let time = Date.now() * 0.002;
             for(let i=0; i<=50; i++) {
                 let x = (i/50) * canvas.width;
-                let amp = 40 / (state.anchors.length + 1);
+                let amp = 30 / (state.anchors.length + 1);
                 let y = canvas.height/2 + Math.sin(i*0.2 + time) * amp;
                 if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
             }
