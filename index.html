@@ -3,127 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RAPM Terminal V40 | 世界模型控制台</title>
+    <title>RAPM_V24_ADAPTIVE</title>
     <style>
-        :root { --p-green: #00ff9d; --p-red: #ff4d4d; --bg: #050505; --dim: #444; }
-        * { box-sizing: border-box; font-family: 'Courier New', Courier, monospace; }
-        body { margin: 0; background: var(--bg); color: var(--p-green); overflow-x: hidden; }
+        :root { --n: #00ffcc; --r: #ff0044; --g: #ffcc00; --b: #000; }
+        body { background: var(--b); color: var(--n); font-family: sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; flex-direction: row; }
+        
+        /* 侧边栏自适应逻辑 */
+        #s { width: 450px; border-right: 2px solid var(--n); padding: 25px; display: flex; flex-direction: column; background: #050505; z-index: 10; transition: all 0.3s; }
+        #log { flex: 1; overflow-y: auto; scrollbar-width: none; margin-bottom: 10px; }
+        #log::-webkit-scrollbar { display: none; }
+        #cmd { background: #000; border: 2px solid var(--n); color: #fff; width: 100%; padding: 15px; font-size: 16px; outline: none; box-sizing: border-box; }
+        
+        .card { border-left: 4px solid var(--n); background: rgba(255,255,255,0.03); padding: 15px; margin-bottom: 20px; animation: f 0.4s ease-out; }
+        @keyframes f { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .risk { border-left-color: var(--r); }
+        .q { color: var(--g); font-size: 12px; margin-bottom: 8px; font-weight: bold; border-bottom: 1px solid #222; padding-bottom: 5px; }
+        .d { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .d b { color: #fff; display: block; font-size: 14px; margin-top: 2px; }
+        .t { font-size: 14px; color: #ddd; border-top: 1px solid #222; padding-top: 10px; line-height: 1.6; }
 
-        /* 全局框架：手机自适应 */
-        .world-shell { display: flex; flex-direction: column; min-height: 100vh; padding: 20px; }
-        .header { display: flex; justify-content: space-between; flex-wrap: wrap; margin-bottom: 30px; border: 1px solid var(--dim); padding: 15px; }
+        #stage { flex: 1; position: relative; background: #000; overflow: hidden; }
+        canvas { width: 100%; height: 100%; opacity: 0.6; }
 
-        /* 数值显示 */
-        .stat-box { min-width: 200px; margin-bottom: 10px; }
-        .stat-label { font-size: 10px; color: var(--dim); letter-spacing: 2px; }
-        .stat-val { font-size: 32px; font-weight: bold; }
-
-        /* 变量控制区：双击锁定为锚点 */
-        .matrix-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; flex: 1; }
-        .control-unit { border: 1px solid var(--dim); padding: 15px; position: relative; transition: 0.3s; cursor: pointer; }
-        .control-unit.anchored { border-color: var(--p-green); box-shadow: 0 0 15px rgba(0, 255, 157, 0.2); }
-        .lock-status { position: absolute; top: 5px; right: 10px; font-size: 9px; opacity: 0; }
-        .anchored .lock-status { opacity: 1; color: var(--p-green); }
-
-        /* 控制台 */
-        .console-zone { margin-top: 30px; border-top: 2px solid var(--p-green); padding-top: 15px; }
-        input { width: 100%; background: transparent; border: 1px solid var(--dim); color: var(--p-green); padding: 12px; outline: none; font-size: 16px; }
-
-        @media (max-width: 600px) {
-            .stat-val { font-size: 24px; }
-            .matrix-grid { grid-template-columns: 1fr; }
+        /* 移动端适配核心代码 */
+        @media (max-width: 850px) {
+            body { flex-direction: column; }
+            #s { width: 100%; height: 50vh; border-right: none; border-bottom: 2px solid var(--n); box-sizing: border-box; padding: 15px; }
+            #stage { height: 50vh; width: 100%; }
+            .d b { font-size: 13px; }
         }
     </style>
 </head>
-<body>
-<div class="world-shell">
-    <div class="header">
-        <div class="stat-box">
-            <div class="stat-label">GLOBAL_RESONANCE</div>
-            <div class="stat-val" id="global-res">0.8241</div>
-            <div style="font-size: 9px;">STATUS: <span id="sys-status">LOCKED</span></div>
-        </div>
-        <div class="stat-box" style="text-align: right;">
-            <div class="stat-label">CONTROL_AUTHORITY</div>
-            <div class="stat-val" style="color: var(--p-red);">12.4%</div>
-            <div style="font-size: 9px;">WEI_JUERAN // ROOT</div>
-        </div>
+<body onclick="document.getElementById('cmd').focus()">
+    <div id="s">
+        <div style="font-weight:900; letter-spacing:3px; font-size:18px; border-bottom: 1px solid var(--n); padding-bottom: 10px; margin-bottom: 15px;">RAPM V24.3 // ADAPTIVE</div>
+        <div id="log"><div style="opacity:0.4; font-size:11px;">> 系统已适配全终端节点...<br>> 等待指令注入...</div></div>
+        <input id="cmd" placeholder="输入变量或社会趋势..." autofocus autocomplete="off">
     </div>
+    <div id="stage"><canvas id="c"></canvas></div>
 
-    <div class="matrix-grid" id="matrix">
-        </div>
+    <script>
+        const canvas = document.getElementById('c'), ctx = canvas.getContext('2d');
+        const cmd = document.getElementById('cmd'), log = document.getElementById('log');
+        let state = { y: 2026.0, ty: 2026.0, h: [] };
 
-    <div class="console-zone">
-        <div class="stat-label">// COMMAND_CONSOLE (Double-click variable to Anchor)</div>
-        <input type="text" id="cmd" placeholder="输入变量或自然语言指令 (例如: 爱, 战争停止)..." oninput="WorldModel.analyze()">
-    </div>
-</div>
-
-<script>
-const Params = [
-    { key: 'rho', name: 'CAPITAL_ATTR', desc: '资本引力', val: 35 },
-    { key: 'sigma', name: 'TECH_DIFFUSION', desc: '技术扩散', val: 15 },
-    { key: 'beta', name: 'INST_INERTIA', desc: '制度惯性', val: 50 }
-];
-
-let Anchors = {};
-
-const WorldModel = {
-    init() {
-        const root = document.getElementById('matrix');
-        root.innerHTML = Params.map(p => `
-            <div class="control-unit" id="unit-${p.key}" ondblclick="WorldModel.toggleAnchor('${p.key}')">
-                <span class="lock-status">[ STABLE ANCHOR ]</span>
-                <div class="stat-label">${p.name} (${p.key})</div>
-                <div style="font-size: 11px; margin-bottom: 10px;">${p.desc}</div>
-                <input type="range" style="width:100%" min="0" max="100" value="${p.val}" oninput="WorldModel.update('${p.key}', this.value)">
-                <div style="text-align:right; font-size: 12px;" id="v-${p.key}">${p.val}</div>
-            </div>
-        `).join('');
-        this.analyze();
-    },
-
-    toggleAnchor(key) {
-        Anchors[key] = !Anchors[key];
-        document.getElementById(`unit-${key}`).classList.toggle('anchored');
-        this.analyze();
-    },
-
-    update(key, val) {
-        if (Anchors[key]) return;
-        const p = Params.find(i => i.key === key);
-        p.val = parseFloat(val);
-        document.getElementById(`v-${key}`).innerText = val;
-        this.analyze();
-    },
-
-    analyze() {
-        const input = document.getElementById('cmd').value;
-        let resonance = 0.8241;
-        
-        // 1. 锚点稳定性修正
-        let anchorCount = Object.keys(Anchors).filter(k => Anchors[k]).length;
-        let stability = 1 + (anchorCount * 0.2); // 每个锚点增加 20% 确定性
-
-        // 2. 语义识别：当识别到“爱”时，全局共振向上坍缩
-        if (/(爱|love|peace|和谐)/.test(input)) {
-            resonance = Math.min(0.9999, resonance * 1.15 * stability);
-            document.getElementById('sys-status').innerText = "HARMONIC_ALIGNMENT";
-        } else {
-            document.getElementById('sys-status').innerText = "OPERATIONAL";
+        function gV(s, o) { 
+            let h = 0; for (let i = 0; i < s.length; i++) h = s.charCodeAt(i) + ((h << 5) - h); 
+            return Math.abs(Math.sin(h * 1.618 + o)); 
         }
 
-        // 3. 计算破碎概率（模型核心）
-        let shatter = (Params[0].val * 0.4 + Params[1].val * 0.3 + Params[2].val * 0.3) / 100;
-        if (anchorCount > 0) shatter /= (stability * 1.5); // 锚点显著降低系统破碎风险
+        const dict = [
+            { k: "金融", t: "信用体系将在 2028 年经历大洗牌。旧有的纸币或数字资产逻辑将失效，财富将面临非自愿性的全球重新锚定。" },
+            { k: "身份", t: "数字化身将比肉体具备更高的社会权重。一旦数字化信用被判定为失效，个体将在物理世界失去所有生存权限。" },
+            { k: "性别", t: "传统的生理性别逻辑瓦解。社会将转向以‘心理认同’和‘功能属性’为基础的新秩序，家庭结构将面临重组。" }
+        ];
 
-        document.getElementById('global-res').innerText = resonance.toFixed(4);
-        // 如果共振极高，改变颜色
-        document.getElementById('global-res').style.color = resonance > 0.9 ? "var(--p-green)" : "white";
-    }
-};
+        function pr(i) {
+            const v1 = gV(i, 1), v2 = gV(i, 2), v3 = gV(i, 3);
+            const y = (2027.2 + v1 * 12.8).toFixed(1), p = (45 + v2 * 50).toFixed(1) + "%", m = (35 + v3 * 60).toFixed(1) + "%";
+            let f = dict.find(item => i.includes(item.k)), t = f ? f.t : `该变量将在 ${y} 年对现有系统造成 ${(v1*80).toFixed(1)}% 的扰动位移。`;
+            let r = v2 > 0.55;
+            return `<div class="card ${r?'risk':''}">
+                <div class="q">解析：${i}</div>
+                <div class="d"><div>爆发节点<b>${y}年</b></div><div>演化概率<b>${p}</b></div><div>影响深度<b>${m}</b></div><div>风险<b>${r?'SEVERE':'NORMAL'}</b></div></div>
+                <div class="t"><b>直白结论：</b><br>${t}</div>
+            </div>`;
+        }
 
-window.onload = () => WorldModel.init();
-</script>
+        function L() {
+            canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
+            if (state.y < state.ty) { state.y += 0.1; state.h.push({y:state.y, s:90-(state.y-2026)*3.5}); }
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            ctx.strokeStyle = '#00ffcc'; ctx.lineWidth = 2; ctx.beginPath();
+            state.h.forEach((h, i) => {
+                let x = (h.y-2026)/24 * canvas.width;
+                let y = canvas.height - (h.s/100 * canvas.height);
+                if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+            });
+            ctx.stroke(); requestAnimationFrame(L);
+        }
+
+        cmd.onkeydown = (e) => {
+            if(e.key === 'Enter' && cmd.value.trim()) {
+                const v = cmd.value;
+                if(v.includes("股票")) {
+                    log.innerHTML = `<div class="card" style="border-left-color:var(--g)"><div class="q">解析：${v}</div><b style="color:var(--g)">拒绝解析：</b>短期噪声不具备推演价值。</div>` + log.innerHTML;
+                } else {
+                    log.innerHTML = pr(v) + log.innerHTML;
+                    state.ty = 2026 + gV(v, 1) * 15;
+                }
+                cmd.value = '';
+            }
+        }; window.onresize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; }; L();
+    </script>
 </body>
 </html>
