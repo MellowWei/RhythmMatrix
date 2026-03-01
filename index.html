@@ -3,146 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rhythm System</title>
+    <title>RAPM_V24_ADAPTIVE</title>
     <style>
-        :root { --n: #00ffcc; --g: #ffcc00; --b: #050505; --w: #ffffff; --dim: #1a1a1a; }
-        * { box-sizing: border-box; }
+        :root { --n: #00ffcc; --r: #ff0044; --g: #ffcc00; --b: #000; }
+        body { background: var(--b); color: var(--n); font-family: sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; flex-direction: row; }
         
-        /* 基础布局：PC端左右并排 */
-        body { 
-            background: var(--b); color: var(--n); 
-            font-family: "PingFang SC", monospace; margin: 0; 
-            display: flex; height: 100vh; overflow: hidden; 
-        }
-
-        /* 侧边栏/信息区 */
-        #s { 
-            width: 500px; border-right: 1px solid var(--dim); 
-            display: flex; flex-direction: column; background: #000; 
-            z-index: 10; flex-shrink: 0;
-        }
-
-        /* 顶部标题区自适应宽度 */
-        .status-bar { 
-            position: absolute; top: 0; width: 500px; padding: 25px; 
-            background: rgba(0,0,0,0.9); border-bottom: 1px solid var(--dim); 
-            z-index: 11; backdrop-filter: blur(10px); 
-        }
-
-        #log { flex: 1; overflow-y: auto; padding: 120px 25px 20px; scrollbar-width: none; }
+        /* 侧边栏自适应逻辑 */
+        #s { width: 450px; border-right: 2px solid var(--n); padding: 25px; display: flex; flex-direction: column; background: #050505; z-index: 10; transition: all 0.3s; }
+        #log { flex: 1; overflow-y: auto; scrollbar-width: none; margin-bottom: 10px; }
         #log::-webkit-scrollbar { display: none; }
+        #cmd { background: #000; border: 2px solid var(--n); color: #fff; width: 100%; padding: 15px; font-size: 16px; outline: none; box-sizing: border-box; }
+        
+        .card { border-left: 4px solid var(--n); background: rgba(255,255,255,0.03); padding: 15px; margin-bottom: 20px; animation: f 0.4s ease-out; }
+        @keyframes f { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .risk { border-left-color: var(--r); }
+        .q { color: var(--g); font-size: 12px; margin-bottom: 8px; font-weight: bold; border-bottom: 1px solid #222; padding-bottom: 5px; }
+        .d { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .d b { color: #fff; display: block; font-size: 14px; margin-top: 2px; }
+        .t { font-size: 14px; color: #ddd; border-top: 1px solid #222; padding-top: 10px; line-height: 1.6; }
 
-        .res-display { font-size: 28px; font-weight: 900; color: var(--w); letter-spacing: -1px; }
-        .card { border: 1px solid var(--dim); background: #080808; padding: 20px; margin-bottom: 20px; border-left: 3px solid var(--n); }
-        .m-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 15px 0; }
-        .m-box { background: #0c0c0c; padding: 10px; border: 1px solid #222; text-align: center;}
-        .m-label { font-size: 10px; color: #555; margin-bottom: 5px; text-transform: uppercase; }
-        .m-val { font-size: 16px; color: var(--w); font-weight: bold; }
-        .section { margin-top: 15px; padding: 12px; font-size: 14px; line-height: 1.6; }
-        .sci { color: #888; background: rgba(0,255,204,0.03); margin-bottom: 10px; font-style: italic; }
-        .con { color: var(--w); background: rgba(255,204,0,0.1); font-weight: 500; border: 1px solid var(--g); }
+        #stage { flex: 1; position: relative; background: #000; overflow: hidden; }
+        canvas { width: 100%; height: 100%; opacity: 0.6; }
 
-        #cmd-box { padding: 25px; border-top: 1px solid var(--dim); background: #000; }
-        #cmd { background: #0a0a0a; border: 2px solid var(--n); color: var(--w); width: 100%; padding: 15px; outline: none; font-size: 16px; }
-
-        /* 画布区 */
-        #stage { flex: 1; position: relative; background: #000; }
-        canvas { width: 100%; height: 100%; display: block; }
-
-        /* --- 移动端核心自适应方案 --- */
-        @media (max-width: 900px) {
-            body { flex-direction: column; } /* 关键：改为上下堆叠 */
-            
-            #stage { height: 40vh; order: 1; flex: none; } /* 视觉波形在上方占40% */
-            
-            #s { 
-                width: 100%; height: 60vh; /* 信息区在下方占60% */
-                border-right: none; border-top: 1px solid var(--dim);
-                order: 2; 
-            }
-
-            .status-bar { width: 100%; padding: 15px; }
-            .res-display { font-size: 22px; }
-            #log { padding-top: 80px; }
-            #help-modal { width: 90% !important; }
+        /* 移动端适配核心代码 */
+        @media (max-width: 850px) {
+            body { flex-direction: column; }
+            #s { width: 100%; height: 50vh; border-right: none; border-bottom: 2px solid var(--n); box-sizing: border-box; padding: 15px; }
+            #stage { height: 50vh; width: 100%; }
+            .d b { font-size: 13px; }
         }
     </style>
 </head>
-<body>
-    <div id="stage"><canvas id="c"></canvas></div>
-
+<body onclick="document.getElementById('cmd').focus()">
     <div id="s">
-        <div class="status-bar">
-            <div class="res-display">Rhythm System</div>
-            <div style="font-size:10px; color:var(--g); opacity:0.8; letter-spacing: 2px;">V26.6 // 响应式校准</div>
-        </div>
-        <div id="log"></div>
-        <div id="cmd-box"><input id="cmd" placeholder="执行因果宣告..." autofocus autocomplete="off"></div>
+        <div style="font-weight:900; letter-spacing:3px; font-size:18px; border-bottom: 1px solid var(--n); padding-bottom: 10px; margin-bottom: 15px;">RAPM V24.3 // ADAPTIVE</div>
+        <div id="log"><div style="opacity:0.4; font-size:11px;">> 系统已适配全终端节点...<br>> 等待指令注入...</div></div>
+        <input id="cmd" placeholder="输入变量或社会趋势..." autofocus autocomplete="off">
     </div>
-
-    <div id="help-btn" style="position:fixed; bottom:20px; right:20px; width:45px; height:45px; background:var(--n); color:#000; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:bold; z-index:100;">?</div>
-
-    <div id="help-modal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:350px; background:#0a0a0a; border:1px solid var(--n); padding:20px; z-index:101;">
-        <h3 style="color:var(--n); margin-top:0;">🌐 提问指南</h3>
-        <ul style="list-style:none; padding:0; line-height:2; font-size:13px; color:#fff;">
-            <li>⚡ <b>秩序</b>: 战争、稳定、美国大选</li>
-            <li>🌏 <b>重心</b>: 中国未来、文明中心</li>
-            <li>🧬 <b>个体</b>: 婚姻、我的性别、核心人物</li>
-            <li>📖 <b>认知</b>: 现在的书、专家、真理</li>
-            <li>🌑 <b>归零</b>: 权力终点、2050年以后</li>
-        </ul>
-        <button onclick="document.getElementById('help-modal').style.display='none'" style="width:100%; background:var(--n); border:none; padding:10px; margin-top:10px; cursor:pointer;">关闭</button>
-    </div>
+    <div id="stage"><canvas id="c"></canvas></div>
 
     <script>
         const canvas = document.getElementById('c'), ctx = canvas.getContext('2d');
         const cmd = document.getElementById('cmd'), log = document.getElementById('log');
-        let State = { hz: 60, lambda: 20, t: 0 };
+        let state = { y: 2026.0, ty: 2026.0, h: [] };
 
-        // 逻辑保持不变...
-        const RULES = [
-            { pattern: /战争|开战|打仗|导弹|蘑菇|冲突|暴力|热战/, t: "2027.3Y", i: 180, l: 70, p: "就剩个缝 (95.6%)", sci: "旧秩序压强达到物理临界值。", con: "2027年前后，旧能量不喷发出来系统就会自燃。" },
-            { pattern: /稳定|和平|平衡|现状|安全/, t: "2027.8Y", i: 180, l: 70, p: "到嗓子眼了 (91.2%)", sci: "压强积蓄已达上限。", con: "所谓的‘稳定’只是爆发前的死寂。2027年喷发是唯一出路。" },
-            { pattern: /美国|美方|USA|大选|华盛顿/, t: "2027.8Y", i: 145, l: 58, p: "到嗓子眼了 (91.2%)", sci: "频率相位偏移，引发震颤。", con: "武力往外溢，嗓子眼堵死了。2027年是最后的旧节奏。" },
-            { pattern: /家庭|婚姻|两口子|凑合|亲密/, t: "2028.5Y", i: 105, l: 60, p: "几乎全满 (92.4%)", sci: "亲密关系回归灵魂共振模型。", con: "两口子凑合的过法会大面积崩溃。关系的唯一标准是频率。" },
-            { pattern: /性别|男|女|变动|身份|我是谁/, t: "2029.2Y", i: 85, l: 42, p: "快溢出来了 (88.2%)", sci: "身份属性与生物基础脱钩。", con: "肉体特征标签失效。人只剩下频率的区别。" },
-            { pattern: /人物|领导|元首|统帅|核心|主席|总统/, t: "2029.5Y", i: 155, l: 30, p: "马上就满 (90.1%)", sci: "个体意志即将发生因果替代。", con: "周期惯性大过个人意志。2029年水满则溢，谁也拦不住。" },
-            { pattern: /中国|中方|国内|东方|大陆/, t: "2031.4Y", i: 110, l: 45, p: "大半瓶了 (75.4%)", sci: "文明重心物理性位移加速。", con: "重心搬家，2031年前是最后旧节奏。搬完才是新世界。" },
-            { pattern: /文化中心|文明中心|领导力|软实力/, t: "2032.6Y", i: 125, l: 40, p: "换水阶段 (80.1%)", sci: "集体潜意识迁移，旧图腾丧失。", con: "新的重力场会吸走所有流量。这不是宣传，是搬家。" },
-            { pattern: /语言|书|说话|沟通|表达|文字|废话/, t: "2037.5Y", i: 160, l: 62, p: "马上就满 (90.1%)", sci: "符号系统过载，因果链断裂。", con: "说话没人信。现在的书和话全是废纸垃圾。" },
-            { pattern: /专家|权威|真理|科学|教育|学校|知识/, t: "2038.2Y", i: 155, l: 65, p: "已经溢出点 (78.5%)", sci: "实证系统彻底失效。", con: "专家说的真理会被一巴掌扇碎。真理就是你直观看到的。" },
-            { pattern: /权力|政治|管理|体制|政府/, t: "2039.0Y", i: 95, l: 40, p: "刚装了个底 (25.4%)", sci: "制度合法性坍缩。", con: "权力像断电一样熄火。旧节奏转不动了。" }
+        function gV(s, o) { 
+            let h = 0; for (let i = 0; i < s.length; i++) h = s.charCodeAt(i) + ((h << 5) - h); 
+            return Math.abs(Math.sin(h * 1.618 + o)); 
+        }
+
+        const dict = [
+            { k: "金融", t: "信用体系将在 2028 年经历大洗牌。旧有的纸币或数字资产逻辑将失效，财富将面临非自愿性的全球重新锚定。" },
+            { k: "身份", t: "数字化身将比肉体具备更高的社会权重。一旦数字化信用被判定为失效，个体将在物理世界失去所有生存权限。" },
+            { k: "性别", t: "传统的生理性别逻辑瓦解。社会将转向以‘心理认同’和‘功能属性’为基础的新秩序，家庭结构将面临重组。" }
         ];
 
-        function calc(input) {
-            let res = RULES.find(r => r.pattern.test(input));
-            if (!res && (input.includes('2050') || input.includes('以后'))) res = { t: "2050.0Y+", p: "旧瓶已碎 (100%)", i: 40, l: 15, sci: "归零。", con: "2050年是新人的世界，旧规矩全归零了。" };
-            if (!res) res = { t: "2031.4Y", p: "大半瓶了 (75.4%)", i: 110, l: 45, sci: "重排中。", con: "重心正在搬家。旧逻辑无法解析。" };
-            State.hz = res.i; State.lambda = res.l;
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.innerHTML = `<div style="color:var(--g); font-size:12px;">宣告：${input}</div><div class="m-grid"><div class="m-box"><div class="m-label">节点</div><div class="m-val">${res.t}</div></div><div class="m-box"><div class="m-label">压强</div><div class="m-val">${res.p}</div></div></div><div class="section sci">${res.sci}</div><div class="section con">${res.con}</div>`;
-            log.insertBefore(card, log.firstChild);
+        function pr(i) {
+            const v1 = gV(i, 1), v2 = gV(i, 2), v3 = gV(i, 3);
+            const y = (2027.2 + v1 * 12.8).toFixed(1), p = (45 + v2 * 50).toFixed(1) + "%", m = (35 + v3 * 60).toFixed(1) + "%";
+            let f = dict.find(item => i.includes(item.k)), t = f ? f.t : `该变量将在 ${y} 年对现有系统造成 ${(v1*80).toFixed(1)}% 的扰动位移。`;
+            let r = v2 > 0.55;
+            return `<div class="card ${r?'risk':''}">
+                <div class="q">解析：${i}</div>
+                <div class="d"><div>爆发节点<b>${y}年</b></div><div>演化概率<b>${p}</b></div><div>影响深度<b>${m}</b></div><div>风险<b>${r?'SEVERE':'NORMAL'}</b></div></div>
+                <div class="t"><b>直白结论：</b><br>${t}</div>
+            </div>`;
         }
 
-        function render() {
+        function L() {
             canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
-            ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
+            if (state.y < state.ty) { state.y += 0.1; state.h.push({y:state.y, s:90-(state.y-2026)*3.5}); }
+            ctx.clearRect(0,0,canvas.width,canvas.height);
             ctx.strokeStyle = '#00ffcc'; ctx.lineWidth = 2; ctx.beginPath();
-            const midY = canvas.height / 2;
-            for (let x = 0; x <= canvas.width; x += 5) {
-                const y = midY + Math.sin(x*0.005 + State.t) * State.hz + Math.cos(x*0.01 + State.t) * State.lambda;
-                x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-            }
-            ctx.stroke(); State.t += 0.05; requestAnimationFrame(render);
+            state.h.forEach((h, i) => {
+                let x = (h.y-2026)/24 * canvas.width;
+                let y = canvas.height - (h.s/100 * canvas.height);
+                if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+            });
+            ctx.stroke(); requestAnimationFrame(L);
         }
 
-        cmd.onkeydown = (e) => { if (e.key === 'Enter' && cmd.value) { calc(cmd.value); cmd.value = ''; } };
-        document.getElementById('help-btn').onclick = () => {
-            const modal = document.getElementById('help-modal');
-            modal.style.display = modal.style.display === 'none' ? 'block' : 'none';
-        };
-        render();
+        cmd.onkeydown = (e) => {
+            if(e.key === 'Enter' && cmd.value.trim()) {
+                const v = cmd.value;
+                if(v.includes("股票")) {
+                    log.innerHTML = `<div class="card" style="border-left-color:var(--g)"><div class="q">解析：${v}</div><b style="color:var(--g)">拒绝解析：</b>短期噪声不具备推演价值。</div>` + log.innerHTML;
+                } else {
+                    log.innerHTML = pr(v) + log.innerHTML;
+                    state.ty = 2026 + gV(v, 1) * 15;
+                }
+                cmd.value = '';
+            }
+        }; window.onresize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; }; L();
     </script>
 </body>
 </html>
