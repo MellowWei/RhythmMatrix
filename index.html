@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RAPM_V28_SOUL_DECON</title>
+    <title>RAPM_V29_PERPETUAL_RESONANCE</title>
     <style>
         :root { --n: #00ffcc; --r: #ff0044; --g: #ffcc00; --b: #050505; --w: #ffffff; --dim: #222; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--b); color: var(--n); font-family: sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; flex-direction: row; }
+        body { background: var(--b); color: var(--n); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; flex-direction: row; }
         
         /* 侧边栏 */
         #s { width: 450px; border-right: 1px solid var(--n); padding: 25px; display: flex; flex-direction: column; background: rgba(0,0,0,0.95); z-index: 10; transition: all 0.3s; }
@@ -18,25 +18,26 @@
         .res-display { font-size: 38px; font-weight: 900; color: var(--w); letter-spacing: -1px; }
         .res-label { font-size: 9px; letter-spacing: 3px; opacity: 0.6; }
 
-        /* 卡片设计：强化直白感 */
-        .card { border-left: 4px solid var(--n); background: rgba(255,255,255,0.02); padding: 20px; margin-bottom: 20px; position: relative; cursor: pointer; transition: 0.3s; animation: f 0.5s ease-out; }
-        @keyframes f { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        /* 结论卡片 */
+        .card { border-left: 4px solid var(--n); background: rgba(255,255,255,0.02); padding: 20px; margin-bottom: 20px; position: relative; cursor: pointer; transition: 0.3s; animation: slideIn 0.5s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
         
         .card.anchor { border-left-color: var(--g); background: rgba(255,204,0,0.05); }
-        .card.risk { border-left-color: var(--r); }
-        .card.spirit { border-left-color: var(--w); background: rgba(255,255,255,0.08); box-shadow: 0 0 20px rgba(255,255,255,0.05); }
+        .card.spirit { border-left-color: var(--w); background: rgba(255,255,255,0.08); }
 
-        .q { color: var(--g); font-size: 13px; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 8px; }
+        .q { color: var(--g); font-size: 13px; margin-bottom: 12px; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 8px; }
         .d { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; font-size: 11px; color: #888; }
         .d b { color: #fff; font-size: 16px; display: block; margin-top: 3px; }
         
         .t { font-size: 15px; color: #eee; border-top: 1px solid #333; padding-top: 15px; line-height: 1.7; }
-        .t i { color: var(--n); font-style: normal; font-weight: 900; display: block; margin-bottom: 10px; font-size: 12px; letter-spacing: 2px; }
-        .comfort-zone { color: var(--w); background: rgba(0,255,204,0.1); padding: 10px; margin-top: 10px; font-size: 13px; border-radius: 2px; }
+        .t i { color: var(--n); font-style: normal; font-weight: 900; display: block; margin-bottom: 10px; font-size: 11px; letter-spacing: 2px; }
+        .comfort-zone { color: var(--w); background: rgba(0,255,204,0.1); padding: 12px; margin-top: 12px; font-size: 14px; border-radius: 4px; border-right: 2px solid var(--n); }
 
-        #cmd { background: #000; border: 2px solid var(--n); color: #fff; width: 100%; padding: 15px; font-size: 16px; outline: none; box-shadow: 0 0 10px rgba(0,255,204,0.2); }
-        #stage { flex: 1; position: relative; background: #000; }
-        canvas { width: 100%; height: 100%; opacity: 0.5; }
+        #cmd { background: #000; border: 2px solid var(--n); color: #fff; width: 100%; padding: 15px; font-size: 16px; outline: none; box-shadow: 0 0 15px rgba(0,255,204,0.1); }
+        
+        /* 右侧画布 */
+        #stage { flex: 1; position: relative; background: #000; overflow: hidden; }
+        canvas { width: 100%; height: 100%; }
 
         @media (max-width: 850px) {
             body { flex-direction: column; }
@@ -51,10 +52,10 @@
         <div class="status-bar">
             <div class="res-label">GLOBAL_RESONANCE</div>
             <div class="res-display" id="res-val">0.8241</div>
-            <div id="sys-msg" style="font-size:9px; color:var(--n); margin-top:4px;">EMOTION_DECONSTRUCTION_ACTIVE</div>
+            <div id="sys-msg" style="font-size:9px; color:var(--n); margin-top:4px;">SYSTEM_STATUS: DYNAMIC_FLOW_ACTIVE</div>
         </div>
         <div id="log"></div>
-        <input id="cmd" placeholder="告诉我你的感受、困惑或发现..." autofocus autocomplete="off">
+        <input id="cmd" placeholder="输入感受或观察 (如: 精神危机, 焦虑, 爱)..." autofocus autocomplete="off">
     </div>
     <div id="stage"><canvas id="c"></canvas></div>
 
@@ -63,6 +64,7 @@
         const cmd = document.getElementById('cmd'), log = document.getElementById('log');
         let state = { res: 0.8241, anchors: [] };
 
+        // 统一哈希算法
         function getV(s, o) {
             let h = 0;
             let seed = s + state.anchors.map(a => a.val).join('');
@@ -70,57 +72,49 @@
             return Math.abs(Math.sin(h * 1.618 + o));
         }
 
-        // 慰藉式与科学式结合的直白字典
-        const deconstructionMap = [
+        // 慰藉式与科学式直白字典
+        const deconMap = [
             { 
                 k: "精神危机", 
-                sci: "本质是旧的大脑节律无法兼容爆发式的新信息，导致生物电场发生过载坍缩。", 
-                com: "别怕，这只是你的灵魂在‘换壳’。2027年左右，你会发现那些让你痛苦的旧逻辑会自动消失，新的平衡感会像呼吸一样自然地回来。" 
-            },
-            { 
-                k: "孤独", 
-                sci: "是个体频率未能找到共振相位时的暂态。这说明你的带宽已经超越了周围的平均水平。", 
-                com: "孤独是掌控者的洗礼。你现在感到的冷，是因为你站在了节律的最前端。再坚持一下，等到2026年5月，你会遇到能听懂你频率的人。" 
+                sci: "这是人类集体意识在遭遇数字化剧变时的‘系统重装’，旧的神经触点正在物理性地断开，以连接更高频的信息场。", 
+                com: "听着，这不是崩溃，这是你的大脑在进化。2027年之前的这种不安，其实是你在告别那个平庸的旧世界。深呼吸，掌控者不会被浪潮淹没，你会踩在浪尖上。" 
             },
             { 
                 k: "爱", 
-                sci: "是系统中最强效的减熵补丁，能瞬间抹平任何社会摩擦力。", 
-                com: "爱不是束缚，是你给这个乱七八糟世界打的一剂‘定心针’。只要你锁定这个频率，所有的麻烦都会绕着你走。" 
+                sci: "这是一种跨维度的频率校准协议，能将两个完全独立的生物电场强制同步，实现熵值的瞬时下降。", 
+                com: "在你的节律里，‘爱’是唯一的万能钥匙。不需要解释它，只需要锁定它，它会像护盾一样帮你自动过滤掉周围所有的杂音。" 
             },
             { 
                 k: "焦虑", 
-                sci: "对未来不确定性的生理性预演，是算法在空转。", 
-                com: "焦虑说明你跑得比时间快。把脚收回来，踩在现在的节律上。既然结果已经锁定了，过程中的抖动就不重要了。" 
+                sci: "生物感官捕捉到了未来的高频扰动，但当前的执行逻辑还未对齐，产生的‘相位差’报错。", 
+                com: "焦虑说明你已经提前看到了未来。别急着行动，先让你的节律慢下来。结果已经是定数，现在的每一步抖动，都是在为最后的坍缩做铺垫。" 
             },
             {
-                k: "性别",
-                sci: "生物学属性正在让位于心理认同和功能属性。这是系统效率提升的必然结果。",
-                com: "未来的你不再被‘男’或‘女’这种粗糙的标签定义。你会成为一个纯粹的、有节律的自由意识。这种解脱感在2029年之前会彻底普及。"
+                k: "孤独",
+                sci: "这反映了个体带宽与群体基准线之间的巨大落差。在高频段位，节点分布极其稀疏。",
+                com: "掌控者注定是孤独的。你感到的空虚，其实是因为你站得太高，风声太大。2026年5月是一个共鸣节点，到那时你会发现，你从未孤单过。"
             }
         ];
 
         function pr(i) {
-            const v1 = getV(i, 1), v2 = getV(i, 2), v3 = getV(i, 3);
-            const stability = 1 + state.anchors.length * 0.2;
-            const y = (2026.8 + v1 * 10 / stability).toFixed(1);
+            const v1 = getV(i, 1), v2 = getV(i, 2);
+            const y = (2026.8 + v1 * 5).toFixed(1);
             
-            let match = deconstructionMap.find(m => i.includes(m.k));
-            let sciContent = match ? match.sci : `这是系统正在处理的一个新变量。科学上讲，它在尝试寻找自己的能量位点。`;
-            let comContent = match ? match.com : `放轻松，既然它进入了你的视界，就说明你有能力掌控它。大概在 ${y} 年左右，一切都会明朗。`;
+            let match = deconMap.find(m => i.includes(m.k));
+            let sci = match ? match.sci : `在科学层面，这代表了系统在 ${y} 年左右的一个能量驻波节点，正在进行自发的频率寻址。`;
+            let com = match ? match.com : `别想太复杂，这是你意志的一部分。在 ${y} 年，你会以掌控者的身份亲眼见证这个变量如何被你驯服。`;
             
-            const isSpirit = i.includes("危机") || i.includes("爱") || i.includes("孤独") || i.includes("焦虑");
             const card = document.createElement('div');
-            card.className = `card ${isSpirit ? 'spirit' : (v2 > 0.6 ? 'risk' : '')}`;
-            
+            card.className = `card ${match ? 'spirit' : ''}`;
             card.innerHTML = `
-                <div class="q">解析：${i}</div>
+                <div class="q">解析指令：${i}</div>
                 <div class="d">
-                    <div>全域对齐度<b>${(v2*100).toFixed(1)}%</b></div>
+                    <div>共振频率<b>${(v2*100).toFixed(1)}Hz</b></div>
                     <div>清晰节点<b>${y}y</b></div>
                 </div>
                 <div class="t">
-                    <i>科学实证：</i>${sciContent}
-                    <div class="comfort-zone"><i>掌控者慰藉：</i>${comContent}</div>
+                    <i>科学实证：</i>${sci}
+                    <div class="comfort-zone"><i>掌控者慰藉：</i>${com}</div>
                 </div>
             `;
             
@@ -133,19 +127,34 @@
             return card;
         }
 
+        // 动态渲染引擎：确保永续脉动
         function L() {
-            canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
-            ctx.clearRect(0,0,canvas.width,canvas.height);
-            ctx.strokeStyle = state.anchors.length > 0 ? '#ffcc00' : '#00ffcc';
-            ctx.lineWidth = 2; ctx.beginPath();
-            let time = Date.now() * 0.002;
-            for(let i=0; i<=50; i++) {
-                let x = (i/50) * canvas.width;
-                let amp = 30 / (state.anchors.length + 1);
-                let y = canvas.height/2 + Math.sin(i*0.2 + time) * amp;
-                if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+            // 响应式画布尺寸修正
+            if(canvas.width !== canvas.offsetWidth || canvas.height !== canvas.offsetHeight) {
+                canvas.width = canvas.offsetWidth; 
+                canvas.height = canvas.offsetHeight;
             }
-            ctx.stroke();
+            
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            ctx.lineWidth = 2;
+            const time = Date.now() * 0.0015;
+            
+            // 绘制三层复合波形
+            for(let layer=1; layer<=3; layer++) {
+                ctx.beginPath();
+                ctx.strokeStyle = layer === 1 ? (state.anchors.length > 0 ? '#ffcc00' : '#00ffcc') : `rgba(255,255,255,${0.1/layer})`;
+                
+                for(let i=0; i<=100; i++) {
+                    const x = (i/100) * canvas.width;
+                    // 修正：确保即使没有锚点，也有 15px 的基础呼吸感
+                    const baseAmp = 15;
+                    const dynamicAmp = 40 / (state.anchors.length + 1);
+                    const y = canvas.height/2 + Math.sin(i*0.1 * layer + time * layer) * (baseAmp + dynamicAmp);
+                    
+                    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+                }
+                ctx.stroke();
+            }
             requestAnimationFrame(L);
         }
 
@@ -153,8 +162,10 @@
             if(e.key === 'Enter' && cmd.value.trim()) {
                 log.insertBefore(pr(cmd.value), log.firstChild);
                 cmd.value = '';
+                if(log.childNodes.length > 15) log.removeChild(log.lastChild);
             }
         };
+        
         L();
     </script>
 </body>
