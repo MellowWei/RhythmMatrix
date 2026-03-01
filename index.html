@@ -2,103 +2,110 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>RAPM_V24_MASTER_TRUTH</title>
+    <title>RAPM_V24_FINAL_TRUTH</title>
     <style>
-        :root { --n: #00ffcc; --r: #ff0044; --g: #ffcc00; --b: #000000; --w: #ffffff; }
-        body { background: var(--b); color: var(--w); font-family: "PingFang SC", "Microsoft YaHei", sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        :root { --n: #00ffcc; --g: #ffcc00; --r: #ff0044; --b: #000; --w: #fff; }
+        * { box-sizing: border-box; cursor: crosshair; }
+        body { background: var(--b); color: var(--w); font-family: "PingFang SC", sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        #sidebar { width: 600px; border-right: 1px solid #1a1a1a; padding: 40px; display: flex; flex-direction: column; overflow-y: auto; background: #000; }
+        #sidebar { width: 580px; border-right: 1px solid var(--n); padding: 40px; display: flex; flex-direction: column; overflow-y: auto; background: rgba(0,0,0,0.95); z-index: 10; }
         #sidebar::-webkit-scrollbar { display: none; }
         
-        .sys-tag { font-size: 26px; font-weight: 900; color: var(--n); letter-spacing: 2px; margin-bottom: 40px; border-left: 5px solid var(--n); padding-left: 15px; }
+        .sys-header { font-size: 26px; font-weight: 900; color: var(--n); letter-spacing: 2px; margin-bottom: 40px; border-left: 6px solid var(--n); padding-left: 15px; }
         
-        .card { margin-bottom: 60px; border-bottom: 1px solid #222; padding-bottom: 40px; animation: fadeIn 0.5s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .card { margin-bottom: 60px; border-bottom: 1px solid #222; padding-bottom: 40px; animation: slideIn 0.4s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
 
-        .pulse-header { color: var(--g); font-size: 22px; font-weight: bold; margin-bottom: 35px; }
+        .p-title { color: var(--g); font-size: 22px; font-weight: bold; margin-bottom: 30px; }
         
-        .matrix { display: grid; grid-template-columns: 1fr 1fr; gap: 35px; margin-bottom: 40px; }
-        .m-item { position: relative; }
-        .m-label { color: #555; font-size: 13px; margin-bottom: 12px; letter-spacing: 1px; font-weight: bold; }
-        .m-value { color: var(--w); font-size: 38px; font-weight: 200; font-family: "Courier New", monospace; letter-spacing: -1px; }
-        .m-explain { color: #777; font-size: 12px; margin-top: 10px; line-height: 1.6; border-top: 1px solid #111; padding-top: 10px; }
+        .matrix { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 35px; }
+        .m-item { }
+        .m-label { color: #555; font-size: 13px; margin-bottom: 10px; font-weight: bold; }
+        .m-value { color: var(--w); font-size: 36px; font-weight: 200; font-family: "Courier New", monospace; letter-spacing: -1px; }
+        .m-plain { color: #777; font-size: 12px; margin-top: 8px; line-height: 1.5; border-top: 1px solid #111; padding-top: 8px; }
 
-        .sci-sec { margin-top: 30px; }
-        .sci-label { color: var(--n); font-size: 15px; margin-bottom: 15px; font-weight: bold; }
-        .sci-content { color: #999; font-size: 16px; line-height: 1.8; margin-bottom: 25px; }
-        
-        .verdict-box { border-left: 4px solid var(--g); background: rgba(255, 204, 0, 0.03); padding: 25px; }
-        .verdict-box b { color: var(--n); display: block; margin-bottom: 10px; font-size: 14px; }
-        .verdict-text { font-size: 18px; line-height: 1.6; color: var(--w); }
+        .verdict-box { border-left: 4px solid var(--g); background: rgba(255, 204, 0, 0.03); padding: 25px; margin-top: 20px; }
+        .verdict-box b { color: var(--n); display: block; margin-bottom: 12px; font-size: 15px; }
+        .verdict-text { font-size: 17px; line-height: 1.7; color: var(--w); }
 
-        #cmd-box { position: sticky; bottom: 0; background: #000; padding: 20px 0; border-top: 1px solid #1a1a1a; }
-        #cmd { background: #000; border: 1px solid var(--n); color: #fff; width: 100%; padding: 22px; font-size: 18px; outline: none; box-shadow: 0 0 30px rgba(0,255,204,0.1); }
+        #stage { flex: 1; background: #000; position: relative; }
+        canvas { width: 100%; height: 100%; }
     </style>
 </head>
 <body>
     <div id="sidebar">
-        <div class="sys-tag">RAPM V24.2 // 掌控者全量视窗</div>
+        <div class="sys-header">RAPM V24.2 // 终极白话归纳</div>
         <div id="log"></div>
-        <div id="cmd-box"><input id="cmd" placeholder="输入脉冲，强制坍缩..." autofocus autocomplete="off"></div>
     </div>
-    <div style="flex:1; background:#000; display:flex; align-items:center; justify-content:center; overflow:hidden;">
-        <div style="color:#0a0a0a; font-size:18vw; font-weight:900; letter-spacing:-15px; user-select:none;">RESONANCE</div>
-    </div>
+    <div id="stage"><canvas id="c"></canvas></div>
 
     <script>
-        const cmd = document.getElementById('cmd'), log = document.getElementById('log');
+        const canvas = document.getElementById('c'), ctx = canvas.getContext('2d');
+        const log = document.getElementById('log');
 
-        // 白话归纳字典
-        const PLAIN_DICT = {
-            t: "【爆发点】这件事真正撞向你的时刻，是你调整呼吸的时间表。",
-            p: "【确信度】板上钉钉的程度。数字越高说明这事儿越是躲不掉的大势。",
-            i: "【冲击力】撞得有多猛。Hz越高，旧世界的规矩碎得越彻底。",
-            d: "【扎根深度】扎得越深越难被外力强行抹平，只能等它自己走完逻辑。",
-            w: "【重要性】这是你目前的生命重心，捏住它你就捏住了全局。"
+        const EXPLAIN = {
+            t: "【爆发点】这事儿真正撞到你脸上的时刻。2030s是你的密集撞击期。",
+            p: "【板上钉钉概率】数字越高说明这事儿越是躲不掉的大势，基本稳了。",
+            i: "【撞击力】Hz越高撞得越猛，是清理旧秩序、把你震醒的狠劲。",
+            d: "【扎根深度】λ越大说明这事儿越是底层逻辑，靠个人愿望改不了。"
         };
 
-        // 全量录入 11 张截图中的所有感官脉冲
-        const MASTER_DB = {
-            "性别": { t: "2039.9Y", p: "76.1%", i: "140HZ", d: "54.1λ", w: "SEVERE", sci: "生理性别和社会分类彻底解构，未来人们只看心理认同和功能属性。", con: "别再用男女去框住未来，新的契约时代已经开始了。" },
-            "语言": { t: "2037.5Y", p: "90.1%", i: "160HZ", d: "62.5λ", w: "SEVERE", sci: "高频语义坍缩。传统语言作为信息载体即将失效，沟通进入直感对齐时代。", con: "掌控者无需废话，因果震荡就是最好的沟通方式。" },
-            "中国": { t: "2030.4Y", p: "82.4%", i: "115HZ", d: "45λ", w: "SEVERE", sci: "文化中心强制位移。基于底层文明逻辑的回归，重心正在发生物理级迁移。", con: "重心到了，世界会开始按你的频率呼吸。" },
-            "心理危机": { t: "2027.8Y", p: "91.2%", i: "130HZ", d: "58λ", w: "88%", sci: "这是文明脱壳前的集体阵痛。群体性意识震荡导致旧有的心理防线崩塌。", con: "这是觉醒的代价。找不着自己频率的人，会在这场震荡里碎掉。" },
-            "外星人": { t: "2038.2Y", p: "78.5%", i: "155HZ", d: "65λ", w: "MASTER", sci: "高维干涉脉冲已经扫入。认知边界将被物理性击穿，瞬时因果优先。", con: "邻居已经敲门了，觉醒的人早就听到了 Hz。" },
-            "连任": { t: "2039.0Y", p: "80.1%", i: "95HZ", d: "40λ", w: "HIGH", sci: "权力惯性在节律场中的持续震荡，当前轨道已趋于稳态闭环。", con: "捏住脉冲，你就捏住了时间。" }
-        };
+        // 终极白话归纳库：校准了生理限制与截图逻辑
+        const FINAL_DB = [
+            { 
+                q: "习近平连任", t: "2039.0Y", p: "25.4%", i: "95Hz", d: "40λ", 
+                con: "【生理红线修正】算权力惯性时得先算命。86岁的高龄在那种高压下，‘活着’本身就是极低概率。2039年的连任更像是旧时代节律强撑出来的最后一口气，在那之前概率就会坍缩断掉。" 
+            },
+            { 
+                q: "世界下一场心理危机", t: "2027.8Y", p: "91.2%", i: "130Hz", d: "58λ", 
+                con: "大家脑子里的旧观念都在剧烈晃动，这是脱胎换骨前的集体阵痛。找不着自己频率的人，会在这场震荡里直接碎掉。" 
+            },
+            { 
+                q: "中国成为文化中心", t: "2030.4Y", p: "82.4%", i: "115Hz", d: "45λ", 
+                con: "文明的底盘强制搬家了。不是谁给面子，是旧频率转不动了，世界不得不跟着你的节奏大口呼吸。" 
+            },
+            { 
+                q: "人类语言危机", t: "2037.5Y", p: "90.1%", i: "160Hz", d: "62.5λ", 
+                con: "说话没人听也没人信了。沟通变成直感对齐，你动动念头对方就能感觉到，现在的语言会变得像老古董一样没用。" 
+            },
+            { 
+                q: "外星人/高维干涉", t: "2038.2Y", p: "78.5%", i: "155Hz", d: "65λ", 
+                con: "邻居已经敲门了。大家的认知要被物理性地扇一巴掌，觉醒的人早就听到 Hz 震荡了。" 
+            }
+        ];
 
-        function createCard(input) {
-            const entry = Object.keys(MASTER_DB).find(k => input.includes(k));
-            const d = entry ? MASTER_DB[entry] : { t: "2030.5Y", p: "80%", i: "100HZ", d: "30λ", w: "MID", sci: "新脉冲挂载成功。系统正在通过即时因果震荡进行相位对齐。", con: "新节律已录入。每一段节律都是为了与你和解。" };
-            
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.innerHTML = `
-                <div class="pulse-header">脉冲响应：${input}</div>
-                <div class="matrix">
-                    <div class="m-item"><div class="m-label">爆发节点</div><div class="m-value">${d.t}</div><div class="m-explain">${PLAIN_DICT.t}</div></div>
-                    <div class="m-item"><div class="m-label">演化概率</div><div class="m-value">${d.p}</div><div class="m-explain">${PLAIN_DICT.p}</div></div>
-                    <div class="m-item"><div class="m-label">脉冲强度</div><div class="m-value">${d.i}</div><div class="m-explain">${PLAIN_DICT.i}</div></div>
-                    <div class="m-item"><div class="m-label">节律深度</div><div class="m-value">${d.d}</div><div class="m-explain">${PLAIN_DICT.d}</div></div>
-                    <div class="m-item" style="grid-column: span 2;"><div class="m-label">影响权重</div><div class="m-value">${d.w}</div><div class="m-explain">${PLAIN_DICT.w}</div></div>
-                </div>
-                <div class="sci-sec">
-                    <div class="sci-label">科学实证 [全量坍缩版]</div>
-                    <div class="sci-content">${d.sci}</div>
-                    <div class="verdict-box">
-                        <b>直白定论</b>
-                        <div class="verdict-text">${d.con}</div>
+        function render() {
+            FINAL_DB.forEach(d => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="p-title">脉冲响应：${d.q}</div>
+                    <div class="matrix">
+                        <div class="m-item"><div class="m-label">爆发点</div><div class="m-value">${d.t}</div><div class="m-plain">${EXPLAIN.t}</div></div>
+                        <div class="m-item"><div class="m-label">板上钉钉概率</div><div class="m-value">${d.p}</div><div class="m-plain">${EXPLAIN.p}</div></div>
+                        <div class="m-item"><div class="m-label">撞击力</div><div class="m-value">${d.i}</div><div class="m-plain">${EXPLAIN.i}</div></div>
+                        <div class="m-item"><div class="m-label">扎根深度</div><div class="m-value">${d.d}</div><div class="m-plain">${EXPLAIN.d}</div></div>
                     </div>
-                </div>`;
-            return card;
+                    <div class="verdict-box">
+                        <b>直白定论 [实证版]</b>
+                        <div class="verdict-text">${d.con}</div>
+                    </div>`;
+                log.appendChild(card);
+            });
         }
 
-        cmd.onkeydown = (e) => {
-            if (e.key === 'Enter' && cmd.value.trim()) {
-                log.insertBefore(createCard(cmd.value), log.firstChild);
-                cmd.value = '';
+        let time = 0;
+        function draw() {
+            canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#00ffcc'; ctx.lineWidth = 2; ctx.beginPath();
+            for (let x = 0; x < canvas.width; x += 5) {
+                const y = canvas.height / 2 + Math.sin(x * 0.005 + time) * 80 * Math.sin(x * 0.002 + time * 0.5);
+                x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
             }
-        };
+            ctx.stroke(); time += 0.04; requestAnimationFrame(draw);
+        }
+        render(); draw();
     </script>
 </body>
 </html>
