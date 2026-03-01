@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RHYTHM_MATRIX_REBORN</title>
+    <title>RHYTHM_MATRIX_SENSE</title>
     <style>
         :root { --n: #00ffcc; --r: #ff0044; --g: #ffcc00; --b: #050505; --w: #ffffff; --dim: #222; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--b); color: var(--n); font-family: "PingFang SC", "SF Pro Display", sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; flex-direction: row; }
+        body { background: var(--b); color: var(--n); font-family: "PingFang SC", sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; flex-direction: row; }
         
         #s { width: 450px; border-right: 1px solid var(--n); padding: 25px; display: flex; flex-direction: column; background: rgba(0,0,0,0.98); z-index: 10; }
         #log { flex: 1; overflow-y: auto; scrollbar-width: none; margin-bottom: 10px; padding-top: 85px; }
@@ -20,11 +20,10 @@
         .card { border: 1px solid var(--dim); background: rgba(255,255,255,0.01); padding: 22px; margin-bottom: 22px; transition: 0.5s; animation: f 0.4s ease-out; }
         @keyframes f { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .card.spirit { border-left: 4px solid var(--w); background: rgba(255,255,255,0.04); }
-        .card.anchor { border-color: var(--g); background: rgba(255,204,0,0.06); box-shadow: 0 0 30px rgba(255,204,0,0.1); }
 
         .q { color: var(--g); font-size: 14px; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 8px; }
         
-        /* 四维矩阵样式 */
+        /* 四维矩阵：概率/时间/强度/深度 */
         .matrix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .m-item { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
         .m-item b { color: var(--w); font-size: 16px; display: block; margin-top: 2px; font-family: "Courier New", monospace; }
@@ -53,14 +52,14 @@
         <div class="status-bar">
             <div class="res-label">GLOBAL_RESONANCE</div>
             <div class="res-display" id="res-val">0.8241</div>
-            <div style="font-size:9px; color:var(--n); margin-top:4px;">PHASE: MATRIX_ALIGNMENT</div>
+            <div style="font-size:9px; color:var(--n); margin-top:4px;">PHASE: SENSE_ALIGNMENT</div>
         </div>
         <div id="log"></div>
-        <input id="cmd" placeholder="注入脉冲脉冲以校准矩阵..." autofocus autocomplete="off">
+        <input id="cmd" placeholder="输入脉冲 (例: 精神危机, 孤独, 爱)..." autofocus autocomplete="off">
     </div>
     <div id="stage">
         <canvas id="c"></canvas>
-        <div id="tag">RESONANCE_FIELD</div>
+        <div id="tag">因果流转中</div>
     </div>
 
     <script>
@@ -69,31 +68,29 @@
         
         let State = {
             res: 0.8241,
-            prob: 0.1,    // 概率 -> 驱动流速
-            intensity: 20, // 强度 -> 驱动振幅
-            depth: 0.015,  // 深度 -> 驱动频率
+            prob: 0.1,      // 发生的概率（看会不会发生）
+            intensity: 20,   // 脉冲强度（看疼不疼）
+            depth: 15,       // 节律深度（看扎根有多深，40λ以上为深层渗透）
             time: 0,
-            anchors: []
+            anchors: 0
         };
 
         const Dictionary = [
-            { k: "精神危机", sci: "生物神经节律与数字化高频场相位失配，导致感官系统强制熔断。", con: "这不是故障，是节律的重塑。在视界节点处，旧逻辑波形会消散，新秩序将在此坍缩。", p: 0.88, t: "2027.2y", i: 140, d: 0.04 },
-            { k: "焦虑", sci: "视界超前坍缩引起的相位抖动，预测算法在虚空频段空转。", con: "由于终点已锁定，过程中的振幅偏差不具因果意义。调低采样率，感受频率的静止。", p: 0.45, t: "IMMEDIATE", i: 90, d: 0.02 },
-            { k: "爱", sci: "全域最强相干协议，可瞬间抹平一切非线性噪声。", con: "这是唯一的永恒锚点。锁死此频段，外界干扰波将发生相位抵消，无法进入视界。", p: 0.99, t: "PERPETUAL", i: 180, d: 0.01 },
-            { k: "孤独", sci: "高频段位下的感官节点稀疏分布现象。", con: "高频共振必然伴随群落落差。你感到的空虚，是更高维度节律降临前的暂态真空。", p: 0.62, t: "2026.8y", i: 60, d: 0.05 }
+            { k: "精神危机", sci: "生物神经节律与数字化高频场相位失配。", con: "这不是故障，是节律重启。2027年旧波形坍缩，新秩序成型。", p: 0.88, t: "2027.2y", i: 140, d: 40 },
+            { k: "爱", sci: "全域最强相干协议，抹平非线性噪声。", con: "这是唯一的永恒锚点。锁死此频段，外界杂波自动抵消。", p: 0.99, t: "PERPETUAL", i: 180, d: 10 },
+            { k: "孤独", sci: "高频段位下，感官节点的稀疏分布。", con: "高频共振必然脱离低频群落。空虚是高维节律降临前的真空。", p: 0.62, t: "2026.8y", i: 60, d: 55 }
         ];
 
         function createCard(input) {
             const seed = Math.random();
             let m = Dictionary.find(x => input.includes(x.k));
             
-            // 数据重置与映射
+            // 重新映射变量数据
             const p = m ? m.p : (0.1 + seed * 0.7);
             const t = m ? m.t : (2026.5 + seed * 5).toFixed(1) + "y";
             const i = m ? m.i : (20 + seed * 80);
-            const d = m ? m.d : (0.01 + seed * 0.03);
+            const d = m ? m.d : (10 + seed * 60);
 
-            // 更新物理场状态
             State.prob = p;
             State.intensity = i;
             State.depth = d;
@@ -106,18 +103,18 @@
                     <div class="m-item">坍缩概率<b>${(p * 100).toFixed(1)}%</b></div>
                     <div class="m-item">视界时间<b>${t}</b></div>
                     <div class="m-item">脉冲强度<b>${i.toFixed(0)}Hz</b></div>
-                    <div class="m-item">节律深度<b>${(d * 1000).toFixed(0)}λ</b></div>
+                    <div class="m-item">节律深度<b>${d.toFixed(0)}λ</b></div>
                 </div>
                 <div class="t">
-                    <b>科学实证</b>${m ? m.sci : "正在探测此脉冲在全域场中的干涉深度。"}
-                    <div class="conclusion"><b>直白定论</b>${m ? m.con : "此节律将在视界节点处完成最终的相位对齐。"}</div>
+                    <b>科学实证</b>${m ? m.sci : "正在探测此脉冲的因果厚度。"}
+                    <div class="conclusion"><b>直白定论</b>${m ? m.con : "此节律将在视界节点处完成相位对齐。"}</div>
                 </div>
             `;
 
             card.ondblclick = () => {
-                if(card.classList.toggle('anchor')) State.anchors.push(p);
-                else State.anchors.pop();
-                State.res = Math.min(0.9999, 0.8241 + (State.anchors.length * 0.04));
+                card.classList.toggle('anchor');
+                State.anchors = document.querySelectorAll('.anchor').length;
+                State.res = Math.min(0.9999, 0.8241 + (State.anchors * 0.04));
                 document.getElementById('res-val').innerText = State.res.toFixed(4);
             };
             return card;
@@ -128,13 +125,14 @@
             canvas.height = canvas.offsetHeight;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 物理规律：流速受概率驱动，时间受 Res 修正
+            // 物理规律：流速跟概率走，时间流逝跟 Res 走
             const flowSpeed = (State.prob * 0.1 + State.res * 0.05);
             State.time += flowSpeed;
 
-            drawWave(0.7, '#00ffcc', 1.0, 0);       // 主频
-            drawWave(0.2, '#ffffff', 0.5, 2.5);     // 谐波
-            if(State.res > 0.9) drawWave(0.3, '#ffcc00', 0.4, 5); // 锚定波
+            // 绘制三层动态干涉波
+            drawWave(0.7, '#00ffcc', 1.0, 0);       
+            drawWave(0.2, '#ffffff', 0.6, 2.5);     
+            if(State.res > 0.9) drawWave(0.3, '#ffcc00', 0.4, 5); 
 
             requestAnimationFrame(render);
         }
@@ -147,13 +145,18 @@
             ctx.beginPath();
             
             const midY = canvas.height / 2;
-            // 振幅受“强度”驱动，波动频率受“深度”驱动
-            const amp = State.intensity * scale;
-            const freq = State.depth;
+            const amp = State.intensity * scale; // 强度决定“跳得有多高”
+            
+            // 节律深度（State.depth）决定“线条有多乱”
+            // 深度越高，谐波干扰越多，代表扎根越深
+            const complexity = State.depth / 20; 
 
-            for (let x = 0; x <= canvas.width; x += 4) {
-                const angle = (x * freq) + State.time + shift;
-                const y = midY + Math.sin(angle) * amp + Math.cos(angle * 0.5) * (amp * 0.2);
+            for (let x = 0; x <= canvas.width; x += 3) {
+                const angle = (x * 0.01) + State.time + shift;
+                // 核心算法：深度越高，加入的额外波动（noise）就越剧烈
+                const noise = Math.sin(angle * complexity) * (amp * 0.3);
+                const y = midY + Math.sin(angle) * amp + noise;
+                
                 if (x === 0) ctx.moveTo(x, y);
                 else ctx.lineTo(x, y);
             }
