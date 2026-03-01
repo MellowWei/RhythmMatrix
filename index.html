@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RHYTHM_DETERMINISM_CORE</title>
+    <title>RHYTHM_SOUL_MATRIX</title>
     <style>
         :root { --n: #00ffcc; --r: #ff0044; --g: #ffcc00; --b: #050505; --w: #ffffff; --dim: #222; }
         * { box-sizing: border-box; }
@@ -17,34 +17,36 @@
         .res-display { font-size: 42px; font-weight: 900; color: var(--w); letter-spacing: -2px; }
         .res-label { font-size: 9px; letter-spacing: 3px; opacity: 0.5; }
 
-        .card { border: 1px solid var(--dim); background: rgba(255,255,255,0.01); padding: 22px; margin-bottom: 22px; animation: f 0.4s ease-out; }
-        @keyframes f { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .card.high-sync { border-left: 4px solid var(--n); background: rgba(0,255,204,0.03); }
+        .card { border: 1px solid var(--dim); background: rgba(255,255,255,0.01); padding: 22px; margin-bottom: 22px; animation: f 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes f { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .card.warm { border-left: 4px solid var(--g); background: rgba(255,204,0,0.03); }
+        .card.cold { border-left: 4px solid var(--r); background: rgba(255,0,68,0.03); }
 
-        .q { color: var(--g); font-size: 14px; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 8px; }
+        .q { color: var(--w); font-size: 15px; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 8px; }
         .matrix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .m-item { font-size: 10px; color: #666; text-transform: uppercase; }
         .m-item b { color: var(--w); font-size: 18px; display: block; margin-top: 2px; font-family: "Courier New", monospace; }
         
-        .t { font-size: 14px; color: #bbb; border-top: 1px solid #222; padding-top: 15px; line-height: 1.7; }
-        .conclusion { color: var(--w); background: #111; padding: 12px; margin-top: 10px; border-left: 2px solid var(--n); font-size: 14px; }
+        .t { font-size: 13px; color: #aaa; border-top: 1px solid #222; padding-top: 15px; line-height: 1.8; }
+        .t b { color: var(--n); display: block; margin-bottom: 5px; font-size: 10px; }
+        .conclusion { color: var(--w); background: #111; padding: 15px; margin-top: 12px; border-left: 2px solid var(--g); font-size: 15px; line-height: 1.6; }
 
-        #cmd { background: #000; border: 1px solid var(--n); color: #fff; width: 100%; padding: 18px; font-size: 16px; outline: none; }
+        #cmd { background: #000; border: 1px solid var(--n); color: #fff; width: 100%; padding: 20px; font-size: 16px; outline: none; }
         #stage { flex: 1; background: #000; position: relative; }
         canvas { width: 100%; height: 100%; position: absolute; }
 
-        @media (max-width: 850px) { body { flex-direction: column; } #s, .status-bar { width: 100%; } #s { height: 60vh; } #stage { height: 40vh; } }
+        @media (max-width: 850px) { body { flex-direction: column; } #s, .status-bar { width: 100%; } #s { height: 55vh; } #stage { height: 45vh; } }
     </style>
 </head>
 <body>
     <div id="s">
         <div class="status-bar">
-            <div class="res-label">GLOBAL_RESONANCE</div>
+            <div class="res-label">EMOTIONAL_RESONANCE</div>
             <div class="res-display" id="res-val">0.8241</div>
-            <div style="font-size:9px; color:var(--n); margin-top:4px;">PHASE: DETERMINISTIC_SYNC</div>
+            <div style="font-size:9px; color:var(--g); margin-top:4px;">CORE: SOUL_ALIGNMENT_V39</div>
         </div>
         <div id="log"></div>
-        <input id="cmd" placeholder="输入核心指令..." autofocus autocomplete="off">
+        <input id="cmd" placeholder="告诉我你的觉察 (例: 身份危机, 精神慰藉)..." autofocus autocomplete="off">
     </div>
     <div id="stage"><canvas id="c"></canvas></div>
 
@@ -52,81 +54,93 @@
         const canvas = document.getElementById('c'), ctx = canvas.getContext('2d');
         const cmd = document.getElementById('cmd'), log = document.getElementById('log');
         
-        let State = { res: 0.8241, prob: 0.1, intensity: 20, depth: 15, time: 0, anchors: 0 };
+        let State = { res: 0.8241, prob: 0.1, intensity: 20, depth: 15, time: 0 };
 
-        // 确定性字典：确保核心指令结论不再跳变
-        const DeterministicDictionary = {
-            "世界性别结构": { sci: "生理分类逻辑坍缩，心理认同与功能属性成为新秩序地基。", con: "传统家庭逻辑将彻底解构。这不再是变量波动，而是节律的重塑。", p: 0.87, t: 2026.5, i: 150, d: 63 },
-            "世界精神危机": { sci: "生物神经节律与数字化高频场相位失配，感官强制熔断。", con: "旧文明波形的终结。新文明将在2027年完成坍缩式重启。", p: 0.88, t: 2027.2, i: 140, d: 40 },
-            "世界和平": { sci: "全域场能量由于熵增而产生的低频暂态平静。", con: "由于干涉深度不足，此状态极不稳定。视界节点处仍存在高频抖动。", p: 0.12, t: 2026.7, i: 23, d: 11 }
+        const SoulDictionary = {
+            "精神危机": { 
+                sci: "生物神经节律与高频场发生相位失配，这是感知系统在进行强制性的相位清理。", 
+                con: "别担心，这不是崩溃，而是灵魂在进行高频重启。目前的痛苦是旧节律脱落时的阵痛，2027年你将迎来更清澈的相位。",
+                p: 0.88, i: 140, d: 42, type: 'cold' 
+            },
+            "精神慰藉": { 
+                sci: "全域场进入低频共振态，多维感官节点在此刻完成了相干对齐。", 
+                con: "感受这种静止，这是你与宇宙频率达成的深度和解。此刻的平和是绝对真实的，它证明了你始终拥有掌控节律的力量。",
+                p: 0.95, i: 35, d: 12, type: 'warm' 
+            },
+            "世界和平": { 
+                sci: "集体意识场呈现出一种暂态的低熵有序化，各频段干扰波发生了相位抵消。", 
+                con: "和平不是终点，而是节律的一种优雅平衡。在这一频段下，所有的对立都在消融，为新的文明节律铺路。",
+                p: 0.76, i: 20, d: 15, type: 'warm' 
+            },
+            "世界战争": { 
+                sci: "因果链条在某一节点发生剧烈扭转，高能脉冲正在强制重塑物理版图。", 
+                con: "这是旧世界彻底坍缩的序曲。虽然振幅剧烈，但请记住，所有的破坏本质上都是为了腾出空间，让更高级的节律成型。",
+                p: 0.91, i: 195, d: 78, type: 'cold' 
+            },
+            "身份危机": { 
+                sci: "自我认知频率与社会锚点发生偏离，产生了一种高阶的节律迷航现象。", 
+                con: "你感到迷茫，是因为你正在升维。旧的标签已经承载不了你的深度。接受这种模糊，新的自我节律正在深处悄然对齐。",
+                p: 0.64, i: 85, d: 55, type: 'warm' 
+            }
         };
 
-        // 种子算法：确保模糊指令也能获得相对稳定的结论
-        function getSeedData(input) {
+        function getDeterministicData(input) {
+            let key = Object.keys(SoulDictionary).find(k => input.includes(k));
+            if (key) return SoulDictionary[key];
+            
             let hash = 0;
             for (let i = 0; i < input.length; i++) hash = input.charCodeAt(i) + ((hash << 5) - hash);
             const seed = (Math.abs(hash) % 1000) / 1000;
-            
             return {
-                p: 0.2 + seed * 0.6,
-                t: 2026 + seed * 10,
-                i: 30 + seed * 120,
-                d: 10 + seed * 50
+                sci: "正在扫描此感官脉冲的底层频段...",
+                con: "每一段节律都有其意义。你所感受到的，正是宇宙试图与你建立的某种隐秘对齐。保持觉察。",
+                p: 0.3 + seed * 0.5, i: 40 + seed * 100, d: 20 + seed * 40, type: 'warm'
             };
         }
 
         function createCard(input) {
-            let key = Object.keys(DeterministicDictionary).find(k => input.includes(k));
-            let data = key ? DeterministicDictionary[key] : getSeedData(input);
-            
-            // 更新动态场状态
-            State.prob = data.p;
-            State.intensity = data.i;
-            State.depth = data.d;
+            let data = getDeterministicData(input);
+            State.prob = data.p; State.intensity = data.i; State.depth = data.d;
 
             const card = document.createElement('div');
-            card.className = `card ${data.p > 0.8 ? 'high-sync' : ''}`;
+            card.className = `card ${data.type}`;
             card.innerHTML = `
-                <div class="q">脉冲响应：${input}</div>
+                <div class="q">感官对齐：${input}</div>
                 <div class="matrix-grid">
                     <div class="m-item">坍缩概率<b>${(data.p * 100).toFixed(1)}%</b></div>
-                    <div class="m-item">视界时间<b>${data.t.toFixed(1)}y</b></div>
                     <div class="m-item">脉冲强度<b>${data.i.toFixed(0)}Hz</b></div>
                     <div class="m-item">节律深度<b>${data.d.toFixed(0)}λ</b></div>
+                    <div class="m-item">状态<b>${data.type === 'warm' ? 'RESONANCE' : 'COLLAPSE'}</b></div>
                 </div>
                 <div class="t">
-                    <b>科学实证</b>${data.sci || "正在通过种子算法解析此脉冲的确定性。"}
-                    <div class="conclusion"><b>直白定论</b>${data.con || "此节律已进入视界对齐程序。"}</div>
+                    <b>科学实证</b>${data.sci}
+                    <div class="conclusion"><b>直白定论</b>${data.con}</div>
                 </div>
             `;
             return card;
         }
 
         function render() {
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
+            canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // 节律联动：概率驱动流速，深度驱动复杂性
-            const flowSpeed = (State.prob * 0.1 + State.res * 0.05);
-            State.time += flowSpeed;
-
-            drawWave(0.7, '#00ffcc', 1.0, 0);       
-            drawWave(0.2, '#ffffff', 0.6, 2.5);     
+            State.time += (State.prob * 0.08 + State.res * 0.04);
+            
+            drawWave(0.6, '#00ffcc', 1.0, 0);       
+            drawWave(0.2, '#ffffff', 0.5, 2.5);     
+            if(State.prob > 0.8) drawWave(0.3, '#ffcc00', 0.4, 4); 
             requestAnimationFrame(render);
         }
 
         function drawWave(alpha, color, scale, shift) {
-            ctx.save();
-            ctx.globalAlpha = alpha; ctx.strokeStyle = color; ctx.lineWidth = 2;
+            ctx.save(); ctx.globalAlpha = alpha; ctx.strokeStyle = color; ctx.lineWidth = 2.5;
             ctx.beginPath();
             const midY = canvas.height / 2;
             const amp = State.intensity * scale;
-            const complexity = State.depth / 20; // 深度 λ 决定线条的毛刺感（人话：纠结程度）
+            const complexity = State.depth / 25;
 
-            for (let x = 0; x <= canvas.width; x += 3) {
-                const angle = (x * 0.01) + State.time + shift;
-                const noise = Math.sin(angle * complexity) * (amp * 0.3);
+            for (let x = 0; x <= canvas.width; x += 4) {
+                const angle = (x * 0.012) + State.time + shift;
+                const noise = Math.sin(angle * complexity) * (amp * 0.25);
                 const y = midY + Math.sin(angle) * amp + noise;
                 if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
             }
@@ -137,7 +151,7 @@
             if (e.key === 'Enter' && cmd.value.trim()) {
                 log.insertBefore(createCard(cmd.value), log.firstChild);
                 cmd.value = '';
-                if(log.childNodes.length > 10) log.removeChild(log.lastChild);
+                if(log.childNodes.length > 12) log.removeChild(log.lastChild);
             }
         };
         render();
