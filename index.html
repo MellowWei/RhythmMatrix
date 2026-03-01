@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RAPM_V36_COLLAPSE_CORE</title>
+    <title>RHYTHM_COLLAPSE_CORE</title>
     <style>
         :root { --n: #00ffcc; --r: #ff0044; --g: #ffcc00; --b: #050505; --w: #ffffff; --dim: #222; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -53,14 +53,14 @@
         <div class="status-bar">
             <div class="res-label">GLOBAL_RESONANCE</div>
             <div class="res-display" id="res-val">0.8241</div>
-            <div style="font-size:9px; color:var(--n); margin-top:4px; font-weight:bold;">PHASE: COLLAPSE_ENG_V36 // WEI_JUERAN</div>
+            <div style="font-size:9px; color:var(--n); margin-top:4px; font-weight:bold;">PHASE: COLLAPSE_ENGINE</div>
         </div>
         <div id="log"></div>
         <input id="cmd" placeholder="注入脉冲 (例: 精神危机, 孤独, 爱)..." autofocus autocomplete="off">
     </div>
     <div id="stage">
         <canvas id="c"></canvas>
-        <div id="matrix-info">因果场对齐中</div>
+        <div id="matrix-info">视界对齐中</div>
     </div>
 
     <script>
@@ -69,39 +69,38 @@
         
         let State = {
             res: 0.8241,
-            freq: 0.1,    // 基础频率
-            target: 0.1,  // 目标频率（平滑过渡用）
-            amp: 20,      // 基础振幅
+            freq: 0.1,    
+            target: 0.1,  
+            amp: 20,      
             targetAmp: 20,
             time: 0,
             anchors: 0
         };
 
         const RhythmDictionary = [
-            { k: "精神危机", sci: "生物神经节律与数字化高频脉冲相位失配，导致感官系统进入强制熔断态。", con: "这是旧逻辑波形的终结。在2027年视界节点，新秩序将直接坍缩。目前的混乱并非故障，而是高频共振前的相位对齐。" },
+            { k: "精神危机", sci: "生物神经节律与数字化高频脉冲相位失配，导致感官系统进入强制熔断态。", con: "这是旧逻辑波形的终结。在视界节点处，新秩序将直接坍缩。目前的混乱并非故障，而是高频共振前的相位对齐。" },
             { k: "焦虑", sci: "视界超前坍缩引起的相位抖动，预测算法在虚空频段发生空转。", con: "结局早已锁定在视界尽头，过程中的振幅偏离不具备任何因果效力。闭合多余感官，感受频率的绝对静止。" },
-            { k: "爱", sci: "全域最强相干协议，可强行抹平一切非线性熵增产生的杂讯。", con: "此频段为视界内唯一的永恒锚点。锁死它，外界所有干扰波将自动发生相位抵消，你的因果场将呈现绝对的平滑。" },
-            { k: "孤独", sci: "高频段位下，感官节点呈现出的非均匀稀疏分布现象。", con: "高频共振必然导致与低频群落的脱节。你感到的空虚，实质上是更高维度节律降临前的真空占位。" }
+            { k: "爱", sci: "全域最强相干协议，可强行抹平一切非线性熵增产生的杂讯。", con: "此频段为视界内唯一的永恒锚点。锁死它，外界所有干扰波将自动发生相位抵消，因果场将呈现绝对的平滑。" },
+            { k: "孤独", sci: "高频段位下，感官节点呈现出的非均匀稀疏分布现象。", con: "高频共振必然导致与低频群落的脱节。感到的空虚，实质上是更高维度节律降临前的真空占位。" }
         ];
 
         function processPulse(input) {
             const seed = Math.random();
             let match = RhythmDictionary.find(x => input.includes(x.k));
             
-            // 动力学反馈：调整波形目标
             State.target = match ? 0.8 : (0.1 + seed * 0.4);
             State.targetAmp = match ? 120 : (30 + seed * 50);
 
             let sContent = match ? match.sci : "正在探测此脉冲在全域场中的干涉深度。";
-            let cContent = match ? match.con : `此脉冲将在 ${(2026.5 + seed * 5).toFixed(1)} 年视界处完成最终的相位对齐。`;
+            let cContent = match ? match.con : `此脉冲将在视界节点处完成最终的相位对齐。`;
 
             const card = document.createElement('div');
             card.className = `card ${match ? 'spirit' : ''}`;
             card.innerHTML = `
-                <div class="q">脉冲：${input}</div>
+                <div class="q">脉冲响应：${input}</div>
                 <div class="d">
                     <div>共振频率<b>${(State.target * 100).toFixed(1)}Hz</b></div>
-                    <div>视界节点<b>${(2026.5 + seed * 5).toFixed(1)}y</b></div>
+                    <div>视界节点<b>NEAREST</b></div>
                 </div>
                 <div class="t">
                     <b>科学实证</b>${sContent}
@@ -114,29 +113,24 @@
                 State.anchors = document.querySelectorAll('.anchor').length;
                 State.res = Math.min(0.9999, 0.8241 + (State.anchors * 0.04));
                 document.getElementById('res-val').innerText = State.res.toFixed(4);
-                document.getElementById('matrix-info').innerText = State.res > 0.9 ? "乾元大成" : "视界对齐";
             };
             return card;
         }
 
-        // 节律渲染循环
         function run() {
             canvas.width = canvas.offsetWidth;
             canvas.height = canvas.offsetHeight;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 物理平滑：让波形变化具有惯性
             State.freq += (State.target - State.freq) * 0.08;
             State.amp += (State.targetAmp - State.amp) * 0.08;
             
-            // 运行时间受全局共振和脉冲频率双重驱动
             const flowRate = (State.res * 0.4 + State.freq * 0.6) * 0.15;
             State.time += flowRate;
 
-            // 绘制三层复合相干波
-            draw(0.8, '#00ffcc', 1.0, 0);       // 主频场
-            draw(0.3, '#ffffff', 0.6, 2.0);     // 谐波场
-            if(State.res > 0.9) draw(0.4, '#ffcc00', 0.4, 4.0); // 锚定场
+            draw(0.8, '#00ffcc', 1.0, 0);       
+            draw(0.3, '#ffffff', 0.6, 2.0);     
+            if(State.res > 0.9) draw(0.4, '#ffcc00', 0.4, 4.0); 
 
             requestAnimationFrame(run);
         }
@@ -152,7 +146,6 @@
             const currentAmp = State.amp * scale;
 
             for (let x = 0; x <= canvas.width; x += 4) {
-                // 非线性波动方程：复合正弦 + 二次谐波
                 const angle = (x * 0.012) + State.time + shift;
                 const harmonic = Math.cos(angle * 0.5) * (currentAmp * 0.3);
                 const y = midY + Math.sin(angle) * currentAmp + harmonic;
