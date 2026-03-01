@@ -3,156 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RAPM_V25_WORLD_ANCHOR</title>
+    <title>RAPM_V25.5_WORLD_RESONANCE</title>
     <style>
-        :root { --n: #00ffcc; --r: #ff0044; --g: #ffcc00; --b: #050505; --w: #ffffff; }
-        body { background: var(--b); color: var(--n); font-family: 'Courier New', monospace; margin: 0; display: flex; height: 100vh; overflow: hidden; flex-direction: row; }
+        :root { --n: #00ffcc; --r: #ff0044; --g: #ffcc00; --b: #050505; --w: #ffffff; --dim: #222; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
-        /* 侧边栏布局 */
-        #s { width: 450px; border-right: 1px solid var(--n); padding: 25px; display: flex; flex-direction: column; background: rgba(0,0,0,0.95); z-index: 10; transition: width 0.3s; }
-        #log { flex: 1; overflow-y: auto; scrollbar-width: none; margin-bottom: 10px; padding-right: 5px; }
+        body { 
+            background: var(--b); color: var(--n); 
+            font-family: 'Courier New', Courier, monospace; 
+            margin: 0; display: flex; height: 100vh; 
+            overflow: hidden; flex-direction: row; 
+        }
+
+        /* 侧边栏自适应 */
+        #s { 
+            width: 450px; border-right: 1px solid var(--n); 
+            padding: 25px; display: flex; flex-direction: column; 
+            background: rgba(0,0,0,0.98); z-index: 10; 
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+        }
+
+        #log { flex: 1; overflow-y: auto; scrollbar-width: none; margin-bottom: 15px; padding-right: 5px; }
         #log::-webkit-scrollbar { display: none; }
-        
+
         /* 指令输入 */
-        .input-wrap { position: relative; }
-        #cmd { background: transparent; border: 1px solid var(--n); color: var(--w); width: 100%; padding: 15px; font-size: 16px; outline: none; box-sizing: border-box; box-shadow: 0 0 10px rgba(0,255,204,0.1); }
-        
-        /* 推演卡片 */
-        .card { border: 1px solid var(--dim); background: rgba(255,255,255,0.02); padding: 15px; margin-bottom: 20px; transition: 0.3s; cursor: pointer; position: relative; border-left: 4px solid var(--n); }
-        .card:hover { background: rgba(0,255,204,0.05); }
-        .card.anchor { border-color: var(--g); background: rgba(255,204,0,0.05); box-shadow: 0 0 15px rgba(255,204,0,0.2); }
-        .card.anchor::after { content: "ANCHOR LOCKED"; position: absolute; top: 5px; right: 10px; font-size: 9px; color: var(--g); font-weight: bold; }
+        .input-wrap { position: relative; border-top: 1px solid var(--dim); padding-top: 15px; }
+        #cmd { 
+            background: #000; border: 1px solid var(--n); color: var(--w); 
+            width: 100%; padding: 15px; font-size: 16px; outline: none; 
+            box-shadow: 0 0 15px rgba(0,255,204,0.05);
+        }
+
+        /* 变量卡片：锚点逻辑 */
+        .card { 
+            border: 1px solid var(--dim); background: rgba(255,255,255,0.02); 
+            padding: 15px; margin-bottom: 20px; transition: 0.3s; 
+            cursor: pointer; position: relative; border-left: 4px solid var(--n);
+            animation: slideIn 0.4s ease-out;
+        }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+
+        .card.anchor { 
+            border-color: var(--g); background: rgba(255,204,0,0.08); 
+            box-shadow: 0 0 20px rgba(255,204,0,0.15); border-left-color: var(--g);
+        }
+        .card.anchor::after { 
+            content: "STABLE_ANCHOR_LOCKED"; position: absolute; 
+            top: 5px; right: 10px; font-size: 9px; color: var(--g); font-weight: bold; 
+        }
         
         .risk { border-left-color: var(--r); }
-        .q { color: var(--g); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-        .d { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; font-size: 12px; }
+        .q { color: var(--g); font-size: 11px; letter-spacing: 2px; margin-bottom: 8px; font-weight: bold; }
+        .d { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
         .d b { color: var(--w); font-size: 15px; display: block; margin-top: 2px; }
-        .t { font-size: 13px; color: #aaa; line-height: 1.6; border-top: 1px solid #222; padding-top: 8px; }
+        .t { font-size: 13px; color: #999; line-height: 1.6; border-top: 1px solid #222; padding-top: 8px; }
 
-        /* 画布区 */
-        #stage { flex: 1; position: relative; background: radial-gradient(circle at center, #111 0%, #000 100%); overflow: hidden; }
-        canvas { width: 100%; height: 100%; }
-        .overlay { position: absolute; top: 20px; right: 20px; text-align: right; font-size: 10px; opacity: 0.5; pointer-events: none; }
+        /* 画布展示区 */
+        #stage { flex: 1; position: relative; background: #000; overflow: hidden; }
+        canvas { width: 100%; height: 100%; opacity: 0.8; }
+        
+        /* 顶部状态浮层 */
+        .status-overlay { 
+            position: absolute; top: 20px; left: 20px; 
+            pointer-events: none; z-index: 5; 
+        }
+        .res-display { font-size: 42px; font-weight: 900; color: var(--w); letter-spacing: -2px; }
+        .res-label { font-size: 10px; color: var(--n); letter-spacing: 5px; opacity: 0.7; }
 
+        /* 移动端适配 */
         @media (max-width: 850px) {
             body { flex-direction: column; }
             #s { width: 100%; height: 55vh; border-right: none; border-bottom: 1px solid var(--n); }
             #stage { height: 45vh; }
+            .res-display { font-size: 32px; }
         }
     </style>
 </head>
-<body>
+<body onclick="document.getElementById('cmd').focus()">
     <div id="s">
-        <div style="font-weight:900; letter-spacing:5px; font-size:16px; margin-bottom: 20px; color: var(--w);">
-            RAPM V25 // <span id="res-val">0.8241</span>
+        <div class="status-overlay">
+            <div class="res-label">GLOBAL_RESONANCE</div>
+            <div class="res-display" id="res-val">0.8241</div>
+            <div id="sys-msg" style="font-size:9px; color:var(--n); margin-top:5px;">> 系统已就绪，等待意志注入...</div>
         </div>
-        <div id="log">
-            <div style="opacity:0.4; font-size:11px;">> 初始化节律世界模型...<br>> 双击卡片建立引力锚点以提高计算精度...</div>
+        <div style="height: 80px;"></div> <div id="log">
+            <div style="opacity:0.3; font-size:11px;">
+                > 提示：输入“爱”触发高频共振补丁<br>
+                > 提示：双击卡片建立【稳定锚点】以收敛计算误差
+            </div>
         </div>
         <div class="input-wrap">
-            <input id="cmd" placeholder="注入社会变量 (如: 货币, 意识形态, 爱)..." autofocus autocomplete="off">
+            <input id="cmd" placeholder="注入变量 (金融, 身份, 战争, 慰藉)..." autofocus autocomplete="off">
         </div>
     </div>
     <div id="stage">
-        <div class="overlay">GLOBAL_RESONANCE_FIELD<br>STATUS: ACTIVE_COLLAPSE</div>
         <canvas id="c"></canvas>
     </div>
 
     <script>
         const canvas = document.getElementById('c'), ctx = canvas.getContext('2d');
         const cmd = document.getElementById('cmd'), log = document.getElementById('log');
-        let state = { res: 0.8241, history: [], anchors: [] };
+        let state = { res: 0.8241, anchors: [], history: [] };
 
-        // 核心：带锚点修正的哈希算法
+        // 核心：基于锚点场的非线性值获取算法
         function getV(str, offset) {
-            let h = 0; 
-            // 如果存在锚点，计算结果向锚点平均值坍缩
+            let h = 0;
+            // 锚点引力修正：锚点越多，随机性(entropy)越低
+            let anchorEffect = "";
             if (state.anchors.length > 0) {
-                let anchorSum = state.anchors.reduce((a, b) => a + b.val, 0) / state.anchors.length;
-                str += anchorSum.toFixed(4); 
+                anchorEffect = state.anchors.map(a => a.val).join('');
             }
-            for (let i = 0; i < str.length; i++) h = str.charCodeAt(i) + ((h << 5) - h);
+            let seed = str + anchorEffect;
+            for (let i = 0; i < seed.length; i++) h = seed.charCodeAt(i) + ((h << 5) - h);
             return Math.abs(Math.sin(h * 1.618 + offset));
         }
 
-        const dict = [
-            { k: "爱", t: "‘爱’不再是感性修辞，而作为一种极高频的共振带宽，将强制对冲全球金融体系带来的冷酷摩擦。它将成为系统中最稳定的节律锚点。" },
-            { k: "金融", t: "传统的信用锚点正在瓦解，2028年后，只有具备‘实际生产力’和‘认知深度’的个体能维持财富的节律性。" }
+        const special_dict = [
+            { k: "爱", t: "‘爱’被识别为全频段稳定器。它将作为系统的底层固件，强行修正所有因利益摩擦导致的节律偏差。这是唯一的绝对锚点。" },
+            { k: "慰藉", t: "精神慰藉脉冲将在系统压力达到临界值（0.92+）时自动爆发。它不是一种选择，而是世界模型为了防止彻底坍缩而产生的自愈机制。" }
         ];
 
-        function createCard(input) {
+        function processCommand(input) {
             const v1 = getV(input, 1), v2 = getV(input, 2), v3 = getV(input, 3);
-            const nodeY = (2027 + v1 * 10).toFixed(1);
-            const prob = (40 + v2 * 55).toFixed(1);
-            const impact = (30 + v3 * 65).toFixed(1);
             
-            let matched = dict.find(d => input.includes(d.k));
-            let text = matched ? matched.t : `该变量将在 ${nodeY} 年引发系统级的非线性扰动。在当前锚点影响下，其演化路径已修正。`;
+            // 准确度修正：如果有锚点，确定性向高位坍缩
+            const stability = 1 + (state.anchors.length * 0.15);
+            const prob = Math.min(99.9, (45 + v2 * 50) * stability).toFixed(1);
+            const nodeY = (2026.5 + v1 * 8 / stability).toFixed(1);
             
+            let match = special_dict.find(d => input.includes(d.k));
+            let text = match ? match.t : `该变量在 ${nodeY} 年产生的扰动深度为 ${(v3*70).toFixed(1)}%。在当前锚点场强下，其负熵效应已被对冲。`;
+            
+            const isRisk = v2 > 0.6 && !match;
+
             const card = document.createElement('div');
-            card.className = `card ${v2 > 0.6 ? 'risk' : ''}`;
-            card.dataset.val = v2; // 存储其核心节律值
+            card.className = `card ${isRisk ? 'risk' : ''}`;
+            card.dataset.val = v2;
+            card.dataset.id = input;
             card.innerHTML = `
-                <div class="q">解析节点：${input}</div>
+                <div class="q">分析：${input}</div>
                 <div class="d">
-                    <div>爆发预计<b>${nodeY}y</b></div>
+                    <div>因果坍缩<b>${nodeY}y</b></div>
                     <div>确定性<b>${prob}%</b></div>
-                    <div>系统占比<b>${impact}%</b></div>
+                    <div>影响权重<b>${(v3*100).toFixed(1)}%</b></div>
+                    <div>状态<b>${isRisk?'ENTROPY':'STABLE'}</b></div>
                 </div>
-                <div class="t"><b>模型结论：</b><br>${text}</div>
+                <div class="t"><b>掌控者结论：</b><br>${text}</div>
             `;
-            
-            // 点击设为锚点：核心逻辑升级
-            card.onclick = () => {
-                card.classList.toggle('anchor');
-                if(card.classList.contains('anchor')) {
+
+            card.ondblclick = () => {
+                const isAnchored = card.classList.toggle('anchor');
+                if (isAnchored) {
                     state.anchors.push({ id: input, val: v2 });
                 } else {
                     state.anchors = state.anchors.filter(a => a.id !== input);
                 }
-                updateSystem();
+                updateGlobalResonance();
             };
+
             return card;
         }
 
-        function updateSystem() {
-            // 锚点越多，Resonance 越接近 0.9999 (绝对掌控)
+        function updateGlobalResonance() {
+            // 锚点引力：每个锚点不仅增加共振值，还增加系统的视觉稳定性
             let base = 0.8241;
-            state.res = Math.min(0.9999, base + (state.anchors.length * 0.04));
+            state.res = Math.min(0.9999, base + (state.anchors.length * 0.03));
             document.getElementById('res-val').innerText = state.res.toFixed(4);
+            document.getElementById('sys-msg').innerText = `> 锚点活跃: ${state.anchors.length} | 系统稳定性已修正。`;
         }
 
         function render() {
             canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+
+            // 背景波形：模拟世界节律
+            ctx.lineWidth = 1;
+            const time = Date.now() * 0.001;
+            const points = 60;
             
-            // 绘制节律网格
-            ctx.strokeStyle = '#222'; ctx.lineWidth = 1;
-            for(let i=0; i<10; i++) {
-                ctx.beginPath(); ctx.moveTo(i*canvas.width/10, 0); ctx.lineTo(i*canvas.width/10, canvas.height); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(0, i*canvas.height/10); ctx.lineTo(canvas.width, i*canvas.height/10); ctx.stroke();
+            // 绘制多重谐波
+            for(let layer=1; layer<=3; layer++) {
+                ctx.beginPath();
+                ctx.strokeStyle = layer === 1 ? 'rgba(0, 255, 204, 0.3)' : 'rgba(255, 255, 255, 0.05)';
+                for(let i=0; i<=points; i++) {
+                    let x = (i/points) * canvas.width;
+                    // 锚点越多，正弦波越平稳（振幅 A 减小）
+                    let A = (30 + layer*20) / (state.anchors.length + 1);
+                    let f = 0.05 * layer;
+                    let y = canvas.height/2 + Math.sin(i*f + time*layer) * A;
+                    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+                }
+                ctx.stroke();
             }
 
-            // 绘制波动曲线
-            ctx.strokeStyle = state.anchors.length > 0 ? '#ffcc00' : '#00ffcc';
-            ctx.lineWidth = 2; ctx.beginPath();
-            let segments = 50;
-            for(let i=0; i<=segments; i++) {
-                let x = (i/segments) * canvas.width;
-                // 锚点越多，波形越平滑，振幅越受控
-                let noise = Math.sin(i * 0.5 + Date.now()*0.002) * (20 / (state.anchors.length + 1));
-                let y = canvas.height/2 + noise;
-                if(i===0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-            }
-            ctx.stroke();
             requestAnimationFrame(render);
         }
 
         cmd.onkeydown = (e) => {
             if(e.key === 'Enter' && cmd.value.trim()) {
                 const v = cmd.value;
-                log.insertBefore(createCard(v), log.firstChild);
+                log.insertBefore(processCommand(v), log.firstChild);
                 cmd.value = '';
+                // 自动清理旧日志保持性能
+                if(log.childNodes.length > 20) log.removeChild(log.lastChild);
             }
         };
 
